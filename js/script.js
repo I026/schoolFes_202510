@@ -6,7 +6,7 @@ const sortListArea = d.querySelector(".exhibits .sortList");
 const exhibitsArea = d.querySelector(".exhibits .list");
 
 let HTMLFileName = window.location.pathname.split("/").pop().split(".")[0];
-HTMLFileName == "" ? "index" : HTMLFileName;
+if (HTMLFileName == "") HTMLFileName = "index";
 
 (() => { // title
     const titleMap = {
