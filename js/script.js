@@ -5,7 +5,7 @@ const topTitleContent  = d.querySelector(".content.topTitle");
 const sortListArea = d.querySelector(".exhibits .sortList");
 const exhibitsArea = d.querySelector(".exhibits .list");
 
-const HTMLFileName = window.location.pathname.split("/").pop().split(".")[0];
+const HTMLFileName = window.location.pathname.split("/").pop().split(".")[0] == "" ? "index" : window.location.pathname.split("/").pop().split(".")[0];
 
 (() => { // title
     const titleMap = {
