@@ -39,7 +39,7 @@ const HTMLFileName = window.location.pathname.split("/").pop().split(".")[0];
     const link_favicon = d.createElement("link");
     
     link_favicon.rel = "icon";
-    link_favicon.href = "_medias/images/favicon.ico";
+    link_favicon.href = "./medias/images/favicon.ico";
     
     d.head.appendChild(link_favicon);
     console.log("favicon");
