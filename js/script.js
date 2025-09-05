@@ -50,10 +50,10 @@ const HTMLFileName = window.location.pathname.split("/").pop().split(".")[0];
     const link_customStyle = d.createElement("link");
     
     link_style.rel = "stylesheet";
-    link_style.href = "./_css/style.css";
+    link_style.href = "./css/style.css";
     
     link_customStyle.rel = "stylesheet";
-    link_customStyle.href = `./_css/${HTMLFileName}.css`;
+    link_customStyle.href = `./css/${HTMLFileName}.css`;
     
     d.head.appendChild(link_style);
     d.head.appendChild(link_customStyle);
@@ -63,7 +63,7 @@ const HTMLFileName = window.location.pathname.split("/").pop().split(".")[0];
 (() => { // js
     const script_customJS = d.createElement("script");
     
-    script_customJS.src = `./_js/${HTMLFileName}.js`;
+    script_customJS.src = `./js/${HTMLFileName}.js`;
     
     d.head.appendChild(script_customJS);
     console.log("js");
