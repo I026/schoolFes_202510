@@ -1,0 +1,61 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Outfit", "Outfit_Local", "Noto Sans JP", "SF Pro JP", "Arial", sans-serif;
+}
+
+.content.top .topTitle svg {
+    transform: translateY( calc(var(--scrollPx) * -1) );
+}
+.content.top .topTitle svg path {
+    transform: scale(1.5);
+    transform-origin: 35% 25%;
+}
+
+.content.top .bottomBar {
+    position: absolute;
+    width: 100vw;
+    height: 50px;
+    bottom: 120px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.content.top .bottomBar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.content.top .bottomBar svg {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+@keyframes arrow {
+    from {
+        stroke-dasharray: var(--pathLength);
+        opacity: 0;
+    }
+    50% {
+        stroke-dashoffset: 0;
+        opacity: .5;
+    }
+    to {
+        stroke-dashoffset: 0;
+        opacity: 0;
+    }
+}
+
+.content.top .button {
+    animation: opacity_0to1 .5s ease-in-out both !important;
+    animation-delay: 2.5s !important;
+}
+
+.content.top .bottomBar svg path {
+    stroke-width: 50;
+    transform: rotate(-45deg);
+    animation: arrow 2s ease-in-out infinite !important;
+    animation-delay: 2.5s !important;
+}
