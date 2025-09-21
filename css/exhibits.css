@@ -105,6 +105,38 @@
     right: 10px;
     top: 10px;
     font-size: .75em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.content.main .exhibits .tile .location svg {
+    position: relative;
+    height: 1.25em;
+    width: 1.25em;
+    margin-left: .5px;
+    transform: rotate(225deg);
+}
+.content.main .exhibits .tile .location svg path {
+    stroke-width: 100;
+    transition: stroke-dashoffset .5s ease-in-out;
+}
+@keyframes arrowHover {
+    from {
+        stroke-dashoffset: 0;
+        opacity: 1;
+    }
+    50% {
+        stroke-dasharray: var(--pathLength);
+        stroke-dashoffset: var(--pathLength);
+        opacity: .5;
+    }
+    to {
+        opacity: .5;
+        stroke-dashoffset: 0;
+    }
+}
+.content.main .exhibits .tile .location:hover svg path {
+    animation: arrowHover .5s ease-in-out both;
 }
 
 .content.main .exhibits .tile.sortList * {

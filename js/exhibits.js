@@ -289,14 +289,20 @@ for (let i = 0; i < exhibitsLength; i += 1) {
     names.textContent = getExhibits(i)[1].name;
     names.classList.add("names");
 
-    location.textContent = getExhibits(i)[1].location.name;
+    const locationText = d.createElement("span");
+    locationText.textContent = getExhibits(i)[1].location.name;
+    location.className = "location button";
+    location.appendChild(locationText);
     (() => {
-        const arrow = d.createElement("svg");
-        arrow.xmlns = "http://www.w3.org/2000/svg";
-        arrow.innerHTML = `<path d="M228.451,230.092L228.451,850.906L849.265,850.906"/>`;
+        const arrow = d.createElementNS("http://www.w3.org/2000/svg", "svg");
+        arrow.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+
+        const path = d.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", "M228.451,230.092L228.451,850.906L849.265,850.906");
+
+        arrow.appendChild(path);
         location.appendChild(arrow);
     })();
-    location.className = "location button";
     
     description.innerHTML = `<span>${getExhibits(i)[1].description}</span>`;
     description.classList.add("description");
@@ -591,7 +597,7 @@ let loadModel;
 
         function generateCheckBox () {
             const checkBox = d.createElement("div");
-            checkBox.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg"><path d="M239.48,469.289 L416.256,646.066 L840.52,221.802"/></svg>`;
+            checkBox.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="anim"><path d="M239.48,469.289 L416.256,646.066 L840.52,221.802"/></svg>`;
             checkBox.className = "checkBox";
             newTag.appendChild(checkBox);
             setPathViewBox();
