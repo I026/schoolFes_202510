@@ -143,10 +143,6 @@ const exhibits = {
     J3_1: {
         name: "(テスト文)",
         description: "(テスト文)",
-        location: {
-            name: "",
-            map: "J3_1"
-        },
         tag: [
             "byClass",
             "J3",
