@@ -174,6 +174,14 @@ const exhibits = {
             "J3",
         ],
     },
+    H3_6: {
+        name: "お化け屋敷(らしい)",
+        description: "(らしいよ!! そうらしい!!!!!!!)",
+        tag: [
+            "byClass",
+            "J3",
+        ],
+    },
 }
 
 const maps_pointIcon = '<img src="medias/images/mapPoint.svg"/>';
@@ -927,17 +935,50 @@ let loadModel;
     });
     updateSort();
 
+    function updateButtonText (targetEl, newText) {
+        if (!targetEl) return;
+        const newTextArea = d.createElement("span");
+        if (targetEl.querySelector("span")?.textContent !== newText) {
+            const animDuration = 300;
+            targetEl.querySelectorAll("span").forEach(span => {
+                span.style.animation = "none";
+                span.offsetHeight;
+                span.style.animation = `showText ${animDuration}ms ease-in-out both reverse`;
+                setTimeout(() => {
+                    span.remove();
+                }, animDuration * 2);
+            });
+            newTextArea.textContent = newText;
+            newTextArea.style.animation = `showText ${animDuration}ms ease-in-out both`;
+            newTextArea.style.animationDelay = `${animDuration}ms`;
+            newTextArea.style.position = "absolute";
+            newTextArea.style.whiteSpace = "nowrap";
+            targetEl.appendChild(newTextArea);
+            targetEl.style.transition = `width ${animDuration * 2}ms ease-in-out, height ${animDuration * 2}ms ease-in-out`;
+            targetEl.style.position = "relative";
+            targetEl.style.display = "flex";
+            targetEl.style.justifyContent = "center";
+            targetEl.style.alignItems = "center";
+            setTimeout(() => {
+                targetEl.style.width  = `${newTextArea.offsetWidth + 20}px`;
+                targetEl.style.height = `${newTextArea.offsetHeight}px`;
+            });
+        }
+    }
+
     (() => { // mapsView
         bottomBar_contents.appendChild(mapsView);
         const compassBar = d.createElement("div");
         const compass = d.createElement("div");
-        const maps_buttons_bottom = d.createElement("div");
+        const maps_buttons_top = d.createElement("div");
 
         maps_buttons_right.className = "buttons right";
         maps_buttons_left.className = "buttons left";
-        maps_buttons_bottom.className = "buttons bottom";
+        maps_buttons_top.className = "buttons top";
 
-        maps_buttons_bottom.textContent = "";
+        const top_button = d.createElement("div");
+        top_button.className = "button";
+        maps_buttons_top.appendChild(top_button);
 
         mapsView.className = "mapsView";
         maps_labelsArea.className = "labelsArea";
@@ -1619,6 +1660,7 @@ let loadModel;
 
                     let lastLabelUpdate = 0;
 
+                    let lastIsShow2DMap;
                     // パン操作時にモデルから離れすぎないように制限
                     maps_controls.addEventListener("change", () => {
                         if (
@@ -1668,8 +1710,10 @@ let loadModel;
                             updateLabelsPosition();
                             lastLabelUpdate = now;
 
-                            const button_dimension_text = isShow2DMap ? "3D" : "2D";
-                            if (button_dimension.textContent !== button_dimension_text) button_dimension.textContent = button_dimension_text;
+                            const button_dimension_text = isShow2DMap ? "2D" : "3D";
+                            if (lastIsShow2DMap !== isShow2DMap) updateButtonText(button_dimension, button_dimension_text);
+
+                            lastIsShow2DMap = isShow2DMap;
 
                             return;
                             const is3D = (
@@ -1882,15 +1926,7 @@ let loadModel;
             button.setAttribute("floor", Object.keys(floors)[Object.keys(floors).length - index - 1]);
             button.className = "button";
 
-            function updateBottomText (floor) {
-                const buttons_bottom = mapsView.querySelector("div.buttons.bottom");
-                const stereotypedText = "階を表示中";
-                if (floor) {
-                    buttons_bottom.textContent = `${floor}${stereotypedText}`;
-                } else {
-                    buttons_bottom.textContent = `すべての${stereotypedText}`;
-                }
-            }
+            const bottomStereotypedText = "階を表示中";
 
             button.addEventListener("click", () => {
                 /* if (index === 0) {
@@ -1913,7 +1949,9 @@ let loadModel;
                 } else {
                     allButtons.forEach((el, index, arr) => {
                         el.classList.remove("invalid");
-                        if (el !== button) el.classList.add("invalid");
+                        if (el !== button) {
+                            el.classList.add("invalid");
+                        }
                     });
                 }
 
@@ -1954,10 +1992,11 @@ let loadModel;
                     });
                 });
 
-                updateBottomText(activeFloors.length === 1 ? activeFloors[0] : null);
+                // updateBottomText(activeFloors.length === 1 ? activeFloors[0] : null);
+                updateButtonText(top_button, activeFloors.length === 1 ? `${activeFloors[0]}${bottomStereotypedText}` : `すべての${bottomStereotypedText}`);
             });
-            updateBottomText();
-            
+            updateButtonText(top_button, `すべての${bottomStereotypedText}`);
+
             maps_buttons_left.appendChild(button);
         });
 
@@ -2009,7 +2048,7 @@ let loadModel;
         mapsView.appendChild(maps_labelsArea);
         mapsView.appendChild(maps_buttons_left);
         mapsView.appendChild(maps_buttons_right);
-        mapsView.appendChild(maps_buttons_bottom);
+        mapsView.appendChild(maps_buttons_top);
     })();
 })();
 
