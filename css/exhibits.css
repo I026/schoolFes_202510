@@ -486,7 +486,7 @@
     height: calc(var(--height) - var(--labelPadding));
     margin-top: calc(var(--height) * -.5);
     z-index: 10001 !important;
-    box-shadow: 0 0 10px black;
+    box-shadow: 0 0 10px gray;
     backdrop-filter: blur(10px);
     --webkit-backdrop-filter: blur(10px);
 }

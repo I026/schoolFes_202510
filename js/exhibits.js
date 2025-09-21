@@ -412,11 +412,6 @@ function barTabClicked (tabIndex) {
     });
     tabClassUpdate(tabIndex);
     barHeightUpdate(true);
-
-    if (loadModel && tabIndex === 1 && !window.modelLoaded) {
-        window.modelLoaded = true;
-        loadModel();
-    }
 }
 
 // カメラ
@@ -434,12 +429,41 @@ const maps_camera = new THREE.OrthographicCamera(
 
 // OrbitControls 初期化
 const maps_controls = new OrbitControls(maps_camera, maps_renderer.domElement);
-maps_controls.enableDamping = true; // 慣性スクロール
-maps_controls.enableRotate = true;
-maps_controls.enableZoom = true;
-maps_controls.enablePan = true;
-maps_controls.dampingFactor = 0.05;
-maps_controls.screenSpacePanning = false;
+
+function cameraPan({
+    x: targetX = targetOffset.x,
+    z: targetZ = targetOffset.z,
+    duration: duration = 1
+}) {
+    // 現在のカメラとターゲットの差分ベクトル
+    const offset = new THREE.Vector3().subVectors(maps_camera.position, maps_controls.target);
+
+    function instantMove () {
+        maps_controls.target.set(targetX, maps_controls.target.y, targetZ);
+        maps_camera.position.copy(maps_controls.target).add(offset);
+        maps_controls.update();
+    }
+
+    if (duration === 0) {
+        instantMove();
+    } else {
+        const startTarget = maps_controls.target.clone();
+        const startCamera = maps_camera.position.clone();
+
+        gsap.to(startTarget, {
+            x: targetX,
+            z: targetZ,
+            duration: duration,
+            ease: "power2.inOut",
+            onUpdate: () => {
+                maps_controls.target.set(startTarget.x, maps_controls.target.y, startTarget.z);
+                maps_camera.position.copy(maps_controls.target).add(offset);
+                maps_controls.update();
+            },
+            onComplete: instantMove
+        });
+    }
+}
 
 function maps_frameObject({
     target: target,
@@ -471,14 +495,24 @@ function maps_frameObject({
 
     // OrbitControls の注視点もトランジション付きで更新
     if (controls) {
-        gsap.to(controls.target, {
-            x: center.x,
-            y: center.y - .2,
-            z: center.z,
-            duration: duration,
-            ease: "power2.inOut",
-            onUpdate: () => controls.update()
-        });
+        if (controls.enableRotate) {
+            gsap.to(controls.target, {
+                x: center.x,
+                y: center.y - .2,
+                z: center.z,
+                duration: duration,
+                ease: "power2.inOut",
+                onUpdate: () => controls.update()
+            });
+        } else {
+        const currentTarget = controls.target;
+            const newTarget = new THREE.Vector3(center.x, currentTarget.y, center.z);
+            cameraPan({
+                x: newTarget.x,
+                z: newTarget.z,
+                duration: duration
+            });
+        }
     }
 }
 
@@ -498,6 +532,28 @@ function maps_addLabelTransition (label, transitionDuration = .5) {
         }
     };
     label.addEventListener("transitionend", onTransitionEnd, { once: true });
+}
+
+const maps_buttons_right = d.createElement("div");
+const maps_buttons_left = d.createElement("div");
+
+function maps_changeFloor (floor) {
+    const floorButtons = maps_buttons_left.querySelectorAll("div.button");
+    floorButtons.forEach((button, index, arr) => {
+        if (index === arr.length - floor) button.click();
+    });
+}
+
+function get_isEveryFloorValid () {
+    const floorButtons = maps_buttons_left.querySelectorAll("div.button");
+    return Array.from(floorButtons)
+        .every(btn => !btn.classList.contains("invalid"));
+};
+
+function maps_getFloor (name) {
+    const regex = /F(\d+)_/g; // gフラグで全マッチ取得
+    const matches = [...name.matchAll(regex)];
+    return matches.map(match => Number(match[1]));
 }
 
 for (let i = 0; i < exhibitsLength; i += 1) {
@@ -548,17 +604,16 @@ for (let i = 0; i < exhibitsLength; i += 1) {
         barTabClicked(1);
         Object.values(maps_locations).forEach((item, index) => {
             if (getExhibits(i)[1] === item) {
+                const targetObj = maps_modelParts[Object.keys(maps_locations)[index]];
                 maps_frameObject({
-                    target: maps_modelParts[Object.keys(maps_locations)[index]]
+                    target: targetObj
                 });
                 const targetLabel = maps_labelsArea.querySelector(`.mapsLabel[exhibits="${Object.keys(maps_locations)[index]}"]`);
                 targetLabel.classList.add("opened");
                 maps_addLabelTransition(targetLabel);
-                // maps_frameObject(item);
+                if (!get_isEveryFloorValid()) maps_changeFloor(maps_getFloor(targetObj.name));
             }
         });
-        // maps_locations[getExhibits(i)[1].location]
-        // maps_frameObject(targetPart, camera, controls, 1);
     });
     
     description.innerHTML = `<span>${getExhibits(i)[1].description}</span>`;
@@ -876,13 +931,14 @@ let loadModel;
         bottomBar_contents.appendChild(mapsView);
         const compassBar = d.createElement("div");
         const compass = d.createElement("div");
-        
-        const buttons_right = d.createElement("div");
-        buttons_right.className = "buttons right";
+        const maps_buttons_bottom = d.createElement("div");
 
-        const buttons_left = d.createElement("div");
-        buttons_left.className = "buttons left";
-        
+        maps_buttons_right.className = "buttons right";
+        maps_buttons_left.className = "buttons left";
+        maps_buttons_bottom.className = "buttons bottom";
+
+        maps_buttons_bottom.textContent = "";
+
         mapsView.className = "mapsView";
         maps_labelsArea.className = "labelsArea";
         compassBar.className = "compassBar";
@@ -952,12 +1008,7 @@ let loadModel;
         const loader = new GLTFLoader();
         let model; // モデルを外で保持
         
-        function getFloor (name) {
-            const regex = /F(\d+)_/g; // gフラグで全マッチ取得
-            const matches = [...name.matchAll(regex)];
-            return matches.map(match => Number(match[1]));
-        }
-        const getFmtedObjName = (name) => name.replace("F" + getFloor(name) + "_", "");
+        const getFmtedObjName = (name) => name.replace("F" + maps_getFloor(name) + "_", "");
 
         loadModel = () => {
             loader.load(
@@ -976,6 +1027,13 @@ let loadModel;
                     }
 
                     setCamFocus(0, 0, 0);
+
+                    maps_controls.enableDamping = true; // 慣性スクロール
+                    maps_controls.enableRotate = true;
+                    maps_controls.enableZoom = true;
+                    maps_controls.enablePan = true;
+                    maps_controls.dampingFactor = 0.05;
+                    maps_controls.screenSpacePanning = false;
 
                     const mergeObjs = [];
                     model.traverse((child) => {
@@ -1142,7 +1200,7 @@ let loadModel;
                         if (partName.includes("_WC")) {
                             maps_locations[partName] = {
                                 name: '<img src="medias/images/wc.svg"/>',
-                                description: `トイレ ${getFloor(partName)[0]}階`
+                                description: `トイレ ${maps_getFloor(partName)[0]}階`
                             }
                         }
                         
@@ -1339,16 +1397,16 @@ let loadModel;
                                 const leftPx = truncate(vector.x * widthHalf + widthHalf - element.offsetWidth / 2);
                                 const topPx  = truncate(-vector.y * heightHalf + heightHalf - element.offsetHeight / 2);
                                 if (
-                                    Math.abs(getFmtedPx(element.style.getPropertyValue("--leftPx")) - leftPx) > .6
+                                    Math.abs(getFmtedPx(element.style.getPropertyValue("--leftPx")) - leftPx) > .1
                                 ) {
                                     element.style.setProperty("--leftPx", leftPx + "px");
                                 }
                                 if (
-                                    Math.abs(getFmtedPx(element.style.getPropertyValue("--topPx")) - topPx) > .6
+                                    Math.abs(getFmtedPx(element.style.getPropertyValue("--topPx")) - topPx) > .1
                                 ) {
                                     element.style.setProperty("--topPx", topPx + "px");
                                 }
-                                if (Math.abs(element.style.getPropertyValue("--camDistance") - camDistance) > .01) {
+                                if (Math.abs(element.style.getPropertyValue("--camDistance") - camDistance) > .1) {
                                     element.style.setProperty("--camDistance", camDistance);
                                 }
 
@@ -1573,24 +1631,6 @@ let loadModel;
                         maps_camera.updateProjectionMatrix();
 
                         (() => {
-                            function cameraPan({
-                                x: targetX = targetOffset.x,
-                                z: targetZ = targetOffset.z,
-                                duration: duration = 1
-                            }) {
-                                // 現在のカメラとターゲットの差分ベクトル
-                                const offset = new THREE.Vector3().subVectors(maps_camera.position, maps_controls.target);
-
-                                // ターゲットを指定位置に移動
-                                maps_controls.target.set(targetX, maps_controls.target.y, targetZ);
-
-                                // カメラの位置もターゲットに対して同じオフセットで移動
-                                maps_camera.position.copy(maps_controls.target).add(offset);
-
-                                // controlsを更新
-                                maps_controls.update();
-                            }
-
                             const targetOffset = maps_controls.target.clone();
                             const distance = targetOffset.length();
                             maps_controls.panSpeed = Math.max(
@@ -1603,7 +1643,8 @@ let loadModel;
                                 const scale = panLimit / distance;
                                 cameraPan({
                                     x: targetOffset.x * scale,
-                                    z: targetOffset.z * scale
+                                    z: targetOffset.z * scale,
+                                    duration: 0
                                 });
                             }
                         })();
@@ -1623,7 +1664,7 @@ let loadModel;
                         // コンパスを回転
                         compass.style.transform = `rotate(${camHorizontal}deg)`;
 
-                        if (now - lastLabelUpdate > 0) {
+                        if (now - lastLabelUpdate > 10) {
                             updateLabelsPosition();
                             lastLabelUpdate = now;
 
@@ -1841,6 +1882,16 @@ let loadModel;
             button.setAttribute("floor", Object.keys(floors)[Object.keys(floors).length - index - 1]);
             button.className = "button";
 
+            function updateBottomText (floor) {
+                const buttons_bottom = mapsView.querySelector("div.buttons.bottom");
+                const stereotypedText = "階を表示中";
+                if (floor) {
+                    buttons_bottom.textContent = `${floor}${stereotypedText}`;
+                } else {
+                    buttons_bottom.textContent = `すべての${stereotypedText}`;
+                }
+            }
+
             button.addEventListener("click", () => {
                 /* if (index === 0) {
                     updateCameraAngle({
@@ -1850,7 +1901,7 @@ let loadModel;
                     });
                     return;
                 } */
-                const allButtons = buttons_left.querySelectorAll(".button");
+                const allButtons = maps_buttons_left.querySelectorAll(".button");
 
                 const isOnlyValid = !button.classList.contains("invalid") &&
                     [...allButtons].every(b => b === button || b.classList.contains("invalid"));
@@ -1867,14 +1918,14 @@ let loadModel;
                 }
 
                 // アクティブフロアを配列で取得
-                const activeFloors = [...buttons_left.querySelectorAll(".button")]
+                const activeFloors = [...maps_buttons_left.querySelectorAll(".button")]
                     .filter(btn => !btn.classList.contains("invalid"))
                     .map(btn => btn.getAttribute("floor").replaceAll("f", "") * 1);
 
                 Object.values(maps_modelParts).forEach(part => {
                     const isPartActive = (
-                        getFloor(part.name)[0] ?
-                        getFloor(part.name).some(floorNum => activeFloors.includes(floorNum)) :
+                        maps_getFloor(part.name)[0] ?
+                        maps_getFloor(part.name).some(floorNum => activeFloors.includes(floorNum)) :
                         !( (!isOnlyValid || isShow2DMap) && (
                             part.name.includes("Roof") ||
                             part.name.includes("Curve")
@@ -1893,8 +1944,6 @@ let loadModel;
                         part.material.depthWrite = isPartActive;
                     }
 
-                    // パーツがどのフロアに属するかを判定
-                    // const isPartActive = exhibits[part.name] ? activeFloors.includes(exhibits[part.name]?.location.floor) : true;
                     gsap.to(part.material, {
                         duration: 0.5,
                         opacity: isPartActive ? 1 : .05,
@@ -1904,9 +1953,12 @@ let loadModel;
                         opacity: isPartActive ? 1 : .05
                     });
                 });
+
+                updateBottomText(activeFloors.length === 1 ? activeFloors[0] : null);
             });
+            updateBottomText();
             
-            buttons_left.appendChild(button);
+            maps_buttons_left.appendChild(button);
         });
 
         const getCamHorizontalSnap = (horizontal) => Math.round(Math.round(horizontal / 45) * 45);
@@ -1946,25 +1998,18 @@ let loadModel;
                     });
                     controlMethodUpdate();
                 }
-                const floorButtons = buttons_left.querySelectorAll("div.button");
-                if (
-                    Array.from(floorButtons)
-                       .every(btn => !btn.classList.contains("invalid"))
-                ) {
-                    floorButtons.forEach((button, index, arr) => {
-                        if (index === arr.length - 1) button.click();
-                    });
-                }
+                if (get_isEveryFloorValid()) maps_changeFloor(1);
             });
 
-            buttons_right.appendChild(compass);
-            buttons_right.appendChild(button_dimension);
+            maps_buttons_right.appendChild(compass);
+            maps_buttons_right.appendChild(button_dimension);
         })();
 
         // mapsView.appendChild(compassBar);
         mapsView.appendChild(maps_labelsArea);
-        mapsView.appendChild(buttons_left);
-        mapsView.appendChild(buttons_right);
+        mapsView.appendChild(maps_buttons_left);
+        mapsView.appendChild(maps_buttons_right);
+        mapsView.appendChild(maps_buttons_bottom);
     })();
 })();
 
