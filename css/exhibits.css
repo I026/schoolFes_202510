@@ -100,6 +100,12 @@
     width: calc(100% - var(--padding) * 2);
     padding: var(--padding);
 }
+.content.main .exhibits .tile .location {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    font-size: .75em;
+}
 
 .content.main .exhibits .tile.sortList * {
     touch-action: pan-x;

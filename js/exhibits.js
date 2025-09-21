@@ -269,6 +269,7 @@ function openTile (targetTile, isToOpen = !targetTile.classList.contains("opened
 for (let i = 0; i < exhibitsLength; i += 1) {
     const tile = d.createElement("div");
     const names = d.createElement("div");
+    const location = d.createElement("div");
     const description = d.createElement("div");
     const tagsContent = d.createElement("div");
     const tags = d.createElement("div");
@@ -285,9 +286,17 @@ for (let i = 0; i < exhibitsLength; i += 1) {
         );
     }
 
-    names.innerHTML = `${getExhibits(i)[1].name}<span class="subText">場所 : ${getExhibits(i)[1].location.name
-    }</span>`;
+    names.textContent = getExhibits(i)[1].name;
     names.classList.add("names");
+
+    location.textContent = getExhibits(i)[1].location.name;
+    (() => {
+        const arrow = d.createElement("svg");
+        arrow.xmlns = "http://www.w3.org/2000/svg";
+        arrow.innerHTML = `<path d="M228.451,230.092L228.451,850.906L849.265,850.906"/>`;
+        location.appendChild(arrow);
+    })();
+    location.className = "location button";
     
     description.innerHTML = `<span>${getExhibits(i)[1].description}</span>`;
     description.classList.add("description");
@@ -323,6 +332,7 @@ for (let i = 0; i < exhibitsLength; i += 1) {
     tagsContent.classList.add("tagsContent");
 
     tile.appendChild(names);
+    tile.appendChild(location);
     tile.appendChild(description);
     tile.appendChild(tags);
     tags.appendChild(tagsContent);
