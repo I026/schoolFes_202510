@@ -13,6 +13,7 @@
     z-index: 9;
     display: flex;
     flex-direction: column;
+    margin-bottom: 50vh;
 }
 @keyframes tag_show {
     0% {
@@ -120,23 +121,23 @@
     stroke-width: 100;
     transition: stroke-dashoffset .5s ease-in-out;
 }
-@keyframes arrowHover {
-    from {
-        stroke-dashoffset: 0;
-        opacity: 1;
-    }
-    50% {
-        stroke-dasharray: var(--pathLength);
-        stroke-dashoffset: var(--pathLength);
-        opacity: .5;
-    }
-    to {
-        opacity: .5;
-        stroke-dashoffset: 0;
-    }
+.content.main .exhibits .tile .location span.locationText {
+    transition: opacity .5s ease-in-out;
+}
+.content.main .exhibits .tile .location:hover span.locationText {
+    opacity: 0;
 }
 .content.main .exhibits .tile .location:hover svg path {
-    animation: arrowHover .5s ease-in-out both;
+    stroke-dashoffset: var(--pathLength);
+    opacity: 0;
+}
+.content.main .exhibits .tile .location span.text {
+    position: absolute;
+    opacity: 0;
+    transition: opacity .5s ease-in-out;
+}
+.content.main .exhibits .tile .location:hover span.text {
+    opacity: 1;
 }
 
 .content.main .exhibits .tile.sortList * {
@@ -252,6 +253,12 @@
     stroke-dashoffset: var(--pathLength);
     opacity: 0 !important;
 }
+.content.main .exhibits .tile.sortList .content {
+    transition: opacity .5s ease-in-out;
+}
+.content.main .exhibits .tile.sortList:not(.opened) .content {
+    opacity: 0;
+}
 .content.main .exhibits .tile.sortList.opened .topBar svg g.close path {
     stroke-dashoffset: 0;
     opacity: 1 !important;
@@ -343,9 +350,10 @@
     width: 100%;
     position: absolute;
     top: 0;
-    height: calc(
+    /* height: calc(
         var(--bottomBarHeight) + var(--topMargin)
-    );
+    ); */
+    height: 100%;
     scroll-snap-type: x mandatory;
     overflow-x: scroll;
     overflow-y: visible;
@@ -379,8 +387,18 @@
     height: calc(80vh - 95px);
     bottom: 0;
     user-select: none;
+    transition: height .5s ease-in-out;
 }
 
+.content.main .exhibits .tile .content .mapsView .labelsArea {
+    pointer-events: none;
+    /* height: calc(100% + var(--topMargin)); */
+    height: calc(
+        var(--bottomBarHeight) + var(--topMargin)
+    );
+    width: 100%;
+    overflow: hidden;
+}
 .content.main .exhibits .tile .content .mapsView .labelsArea .mapsLabel.addTransition {
     transition:
     opacity                  var(--duration) ease-out,
@@ -522,8 +540,9 @@
     opacity: 0;
 }
 .content.main .exhibits .tile .content .mapsView .labelsArea .mapsLabel > div.informations .location {
-    margin-top   : 0;
-    margin-bottom: 10px;
+    position: relative;
+    margin-bottom: 15px;
+    top: 0;
 }
 
 .content.main .exhibits .tile .content .mapsView .labelsArea .mapsLabel .emphasis {
