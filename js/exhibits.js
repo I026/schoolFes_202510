@@ -247,6 +247,16 @@ const maps_locations = {
     },
     F1_Art: {
         name: "美術棟",
+        offset: {
+            y: .1,
+        },
+    },
+
+    BusStation_Base: {
+        name: "バス停",
+        offset: {
+            y: .1,
+        },
     },
 };
 
@@ -1085,27 +1095,34 @@ let loadModel;
                             };
 
                             // ジオメトリ統合
-                            const transformedGeometries = meshes.map(mesh => {
-                                let geom = mesh.geometry.clone();
+                            const transformedGeometries = meshes
+                                .filter(mesh => {
+                                    // 特定の名前のマテリアルが適用されているメッシュを除外
+                                    const material = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
+                                    return material?.name !== "Transparent";
+                                })
+                                .map(mesh => {
+                                    let geom = mesh.geometry.clone();
 
-                                // 1. 重複頂点の削除
-                                const tolerance = 0.025; // 適宜調整
-                                geom = BufferGeometryUtils.mergeVertices(geom, tolerance);
+                                    // 1. 重複頂点の削除
+                                    const tolerance = 0.025; // 適宜調整
+                                    geom = BufferGeometryUtils.mergeVertices(geom, tolerance);
 
-                                // 2. ワールド変換を適用
-                                const matrix = new THREE.Matrix4();
-                                matrix.multiplyMatrices(
-                                    new THREE.Matrix4().compose(child.position, child.quaternion, child.scale),
-                                    new THREE.Matrix4().compose(mesh.position, mesh.quaternion, mesh.scale)
-                                );
-                                geom.applyMatrix4(matrix);
+                                    // 2. ワールド変換を適用
+                                    const matrix = new THREE.Matrix4();
+                                    matrix.multiplyMatrices(
+                                        new THREE.Matrix4().compose(child.position, child.quaternion, child.scale),
+                                        new THREE.Matrix4().compose(mesh.position, mesh.quaternion, mesh.scale)
+                                    );
+                                    geom.applyMatrix4(matrix);
 
-                                // 3. LOD用の簡略化ジオメトリ作成（例: デシメーションは簡易版）
-                                const lodGeom = geom.clone();
-                                const lod = new THREE.LOD();
-                                lod.addLevel(new THREE.Mesh(lodGeom, mesh.material.clone()), 0);
-                                return geom;
-                            });
+                                    // 3. LOD用の簡略化ジオメトリ作成（例: デシメーションは簡易版）
+                                    const lodGeom = geom.clone();
+                                    const lod = new THREE.LOD();
+                                    lod.addLevel(new THREE.Mesh(lodGeom, mesh.material.clone()), 0);
+
+                                    return geom;
+                                });
 
                             const mergedGeometry = BufferGeometryUtils.mergeGeometries(transformedGeometries, true);
                             if (!mergedGeometry) return;
@@ -1153,6 +1170,36 @@ let loadModel;
                         item.parent.remove(item.original);
                         maps_modelParts[item.original.name] = item.merged;
                     });
+
+                    (() => {
+                        function blinkBrinkerLight(objectName, blinkInterval = 500, targetMaterialName = "Bus_BrinkerLight") {
+                            const targetObj = maps_modelParts[objectName];
+                            if (!targetObj) {
+                                console.warn("指定されたオブジェクトが存在しません:", objectName);
+                                return;
+                            }
+
+                            let isVisible = true;
+
+                            setInterval(() => {
+                                targetObj.traverse((child) => {
+                                    if (child.isMesh) {
+                                        // 配列マテリアル対応
+                                        const materials = Array.isArray(child.material) ? child.material : [child.material];
+                                        materials.forEach((mat) => {
+                                            if (mat.name === targetMaterialName) {
+                                                mat.emissive = new THREE.Color(isVisible ? 0x000000 : 0xffa500); // 点灯時はオレンジ
+                                                mat.emissiveIntensity = isVisible ? 0 : 1;
+                                                mat.needsUpdate = true;
+                                            }
+                                        });
+                                    }
+                                });
+                                isVisible = !isVisible;
+                            }, blinkInterval);
+                        }
+                        blinkBrinkerLight("Bus_Body_6");
+                    })();
 
                     console.log("パーツ一覧:", maps_modelParts);
 
@@ -1269,13 +1316,6 @@ let loadModel;
                                 title.appendChild(text);
                                 label.appendChild(title);
                             }
-
-                            /* if (descriptionText) {
-                                const description = d.createElement("span");
-                                description.textContent = descriptionText;
-                                description.className = "description";
-                                label.appendChild(description);
-                            } */
                             
                             const informations = d.createElement("div");
                             informations.className = "informations";
@@ -1434,8 +1474,8 @@ let loadModel;
                             ));
 
                             if (element.getAttribute("isPressable") === "true" || element.style.opacity !== 0) {
-                                const leftPx = truncate(vector.x * widthHalf + widthHalf - element.offsetWidth / 2);
-                                const topPx  = truncate(-vector.y * heightHalf + heightHalf - element.offsetHeight / 2);
+                                const leftPx = truncate(( vector.x -  + (maps_locations[part.name]?.offset?.x || 0)) * widthHalf  + widthHalf  - element.offsetWidth  / 2);
+                                const topPx  = truncate((-vector.y -  + (maps_locations[part.name]?.offset?.y || 0)) * heightHalf + heightHalf - element.offsetHeight / 2);
                                 if (
                                     Math.abs(getFmtedPx(element.style.getPropertyValue("--leftPx")) - leftPx) > .1
                                 ) {
@@ -1449,24 +1489,6 @@ let loadModel;
                                 if (Math.abs(element.style.getPropertyValue("--camDistance") - camDistance) > .1) {
                                     element.style.setProperty("--camDistance", camDistance);
                                 }
-
-                                function distaceTest () {
-                                    // element.textContent = `${ Math.floor(100000 - (camDistance * 100)) }`;
-                                    // element.textContent = `${Math.floor(camDistance * 10000) / 10000}`;
-                                    element.textContent = `${objPos.x}\n${objPos.z}`;
-                                    element.style.minWidth = "6em";
-                                    element.style.minHeight = "3em";
-                                    element.style.fontSize = ".5em";
-                                }
-                                // distaceTest();
-
-                                // const transformValue = `translate3d(${leftPx}px, ${topPx}px, 0)`;
-
-                                /* if (element.style.transform !== transformValue) {
-                                    element.style.transform = transformValue;
-                                } */
-
-                                // if (part.name.includes("J2_1")) console.log(camDistance);
                                 
                                 (() => {
                                     const childWidths = [];
