@@ -72,9 +72,6 @@ const exhibits = {
     J1_1: {
         name: "(テスト文)",
         description: "(テスト文)",
-        location: {
-            name: ""
-        },
         tag: [
             "byClass",
             "J1",
@@ -83,9 +80,6 @@ const exhibits = {
     J1_2: {
         name: "(テスト文)",
         description: "(テスト文)",
-        location: {
-            name: ""
-        },
         tag: [
             "byClass",
             "J1",
@@ -94,9 +88,6 @@ const exhibits = {
     J1_3: {
         name: "(テスト文)",
         description: "(テスト文)",
-        location: {
-            name: ""
-        },
         tag: [
             "byClass",
             "J1",
@@ -105,9 +96,6 @@ const exhibits = {
     J2_1: {
         name: "お化け屋敷",
         description: "怖いお化けが出る屋敷怖いお化けが出る屋敷怖いお化けが出る屋敷怖いお化けが出る屋敷怖いお化けが出る屋敷怖いお化けが出る屋敷怖いお化けが出る屋敷",
-        location: {
-            name: ""
-        },
         tag: [
             "byClass",
             "J2",
@@ -117,9 +105,6 @@ const exhibits = {
     J2_2: {
         name: "サービスエリア",
         description: "(テスト文)",
-        location: {
-            name: ""
-        },
         tag: [
             "byClass",
             "J2",
@@ -131,9 +116,6 @@ const exhibits = {
     J2_3: {
         name: "SASUKE",
         description: "(テスト文)",
-        location: {
-            name: ""
-        },
         tag: [
             "byClass",
             "J2",
@@ -151,9 +133,6 @@ const exhibits = {
     J3_2: {
         name: "(テスト文)",
         description: "(テスト文)",
-        location: {
-            name: ""
-        },
         tag: [
             "byClass",
             "J3",
@@ -162,9 +141,6 @@ const exhibits = {
     J3_3: {
         name: "(テスト文)",
         description: "(テスト文)",
-        location: {
-            name: ""
-        },
         tag: [
             "byClass",
             "J3",
@@ -173,9 +149,12 @@ const exhibits = {
     H3_6: {
         name: "お化け屋敷(らしい)",
         description: "(らしいよ!! そうらしい!!!!!!!)",
+        location: {
+            name: "あなたのいえのてんじょうのうえらへん"
+        },
         tag: [
             "byClass",
-            "J3",
+            "H3",
         ],
     },
 }
@@ -254,9 +233,7 @@ const maps_locations = {
     F3_H3_5: {
         name: "テスト文"
     },
-    F3_H3_6: {
-        name: "テスト文"
-    },
+    F3_H3_6: exhibits.H3_6,
     F3_H3_7: {
         name: "テスト文"
     },
@@ -427,8 +404,8 @@ const maps_camera = new THREE.OrthographicCamera(
     maps_cameraSize * maps_aspect,   // right
     maps_cameraSize,            // top
     -maps_cameraSize,           // bottom
-    0.1,                   // near
-    1000                   // far
+    1,
+    200
 );
 
 // OrbitControls 初期化
@@ -473,7 +450,8 @@ function maps_frameObject({
     target: target,
     camera: camera = maps_camera,
     controls: controls = maps_controls,
-    duration: duration = 1
+    duration: duration = 1,
+    isToCenter: isToCenter = true
 }) {
     if (!target?.geometry) return;
 
@@ -499,17 +477,18 @@ function maps_frameObject({
 
     // OrbitControls の注視点もトランジション付きで更新
     if (controls) {
+        // 既存の中心へのズーム・注視点移動処理
         if (controls.enableRotate) {
             gsap.to(controls.target, {
                 x: center.x,
-                y: center.y - .2,
+                y: center.y - .15,
                 z: center.z,
                 duration: duration,
                 ease: "power2.inOut",
                 onUpdate: () => controls.update()
             });
         } else {
-        const currentTarget = controls.target;
+            const currentTarget = controls.target;
             const newTarget = new THREE.Vector3(center.x, currentTarget.y, center.z);
             cameraPan({
                 x: newTarget.x,
@@ -560,6 +539,12 @@ function maps_getFloor (name) {
     return matches.map(match => Number(match[1]));
 }
 
+exhibitsArea.addEventListener("click", e => {
+    const tile = e.target.closest(".tile");
+    if (!tile) return;
+    openTile(tile);
+});
+
 for (let i = 0; i < exhibitsLength; i += 1) {
     const tile = d.createElement("div");
     const names = d.createElement("div");
@@ -572,13 +557,17 @@ for (let i = 0; i < exhibitsLength; i += 1) {
     tile.setAttribute("exhibits", getExhibits(i)[0]);
     tile.className = "tile";
 
-    if (!getExhibits(i)[1]?.location?.name || getExhibits(i)[1].location.name === "") {
+    if (!getExhibits(i)[1].location) {
+        getExhibits(i)[1].location = {};
+    }
+    if (!getExhibits(i)[1].location.name) {
         getExhibits(i)[1].location.name = getClassName(
             getExhibits(i)[0].split("_")[0].split("")[0],
             getExhibits(i)[0].split("_")[0].split("")[1],
             getExhibits(i)[0].split("_")[1]
         );
     }
+    console.log("getExhibits(i)[1] : ", getExhibits(i)[1]);
 
     names.textContent = getExhibits(i)[1].name;
     names.classList.add("names");
@@ -625,12 +614,6 @@ for (let i = 0; i < exhibitsLength; i += 1) {
 
     let displayTagNames = [];
     const usedTags = new Set();
-
-    exhibitsArea.addEventListener("click", e => {
-        const tile = e.target.closest(".tile");
-        if (!tile) return;
-        openTile(tile);
-    });
 
     Object.keys(tagOrder).forEach((tag) => {
         if (!getExhibits(i)[1].tag.includes(tag) || usedTags.has(tag)) return;
@@ -1006,7 +989,7 @@ let loadModel;
         light.shadow.bias = -0.0001;
         function matchSun () {
             const sunPos = SunCalc.getPosition(now, latitude, longitude);
-            const distance = 10; // 光源までの距離
+            const distance = 1000; // 光源までの距離
             const altitude = sunPos.altitude; // 高度
             const azimuth = sunPos.azimuth;   // 方位角（北=0）
 
@@ -1022,6 +1005,13 @@ let loadModel;
             const minIntensity = 0;
             light.intensity = Math.max(minIntensity, Math.sin(sunPos.altitude) * maxIntensity);            
         }
+        /* 
+        AeroStar:
+        横 : 1
+        縦 : 4.3172690763
+        高 : 1.2329317269
+        地 : 0.06626506024
+        */
         matchSun();
         setInterval(matchSun, 1000 * 60);
         scene.add(light);
@@ -1054,7 +1044,7 @@ let loadModel;
                     model = gltf.scene;
 
                     model.position.set(0, 0, 0);
-                    model.rotation.y = THREE.MathUtils.degToRad(180 - 45);
+                    model.rotation.y = THREE.MathUtils.degToRad(135);
                     scene.add(model);
 
                     // モデルが読み込まれたら OrbitControls の注視点をモデル中心に設定
@@ -1073,7 +1063,7 @@ let loadModel;
                     maps_controls.screenSpacePanning = false;
 
                     const mergeObjs = [];
-                    model.traverse((child) => {
+                    model.traverse(child => {
                         if (child.isMesh) {
                             maps_modelParts[child.name] = child;
                             child.castShadow = false;
@@ -1099,7 +1089,8 @@ let loadModel;
                                 let geom = mesh.geometry.clone();
 
                                 // 1. 重複頂点の削除
-                                geom = BufferGeometryUtils.mergeVertices(geom);
+                                const tolerance = 0.025; // 適宜調整
+                                geom = BufferGeometryUtils.mergeVertices(geom, tolerance);
 
                                 // 2. ワールド変換を適用
                                 const matrix = new THREE.Matrix4();
@@ -1112,8 +1103,7 @@ let loadModel;
                                 // 3. LOD用の簡略化ジオメトリ作成（例: デシメーションは簡易版）
                                 const lodGeom = geom.clone();
                                 const lod = new THREE.LOD();
-                                lod.addLevel(new THREE.Mesh(geom, mesh.material.clone()), 0); // 高精度
-                                lod.addLevel(new THREE.Mesh(lodGeom, mesh.material.clone()), 50); // 簡易版
+                                lod.addLevel(new THREE.Mesh(lodGeom, mesh.material.clone()), 0);
                                 return geom;
                             });
 
@@ -1144,7 +1134,14 @@ let loadModel;
                             mergedMesh.name = child.name;
 
                             // 元の位置情報を mergedMesh にもコピーしておく
-                            mergedMesh.userData.originalTransform = { ...child.userData.originalTransform };
+                            const rotationMatrix = new THREE.Matrix4().makeRotationY(model.rotation.y);
+                            const originalPos = child.userData.originalTransform.position.clone();
+                            const rotatedPos = originalPos.applyMatrix4(rotationMatrix);
+
+                            mergedMesh.userData.originalTransform = {
+                                ...child.userData.originalTransform,
+                                position: rotatedPos
+                            };
 
                             mergeObjs.push({ parent: child.parent, original: child, merged: mergedMesh });
                         }
@@ -1162,7 +1159,7 @@ let loadModel;
                     // エッジ線を追加（親レベルのメッシュのみ、子メッシュの内部構造は無視）
                     Object.values(maps_modelParts).forEach((mesh) => {
                         if (mesh.isMesh && mesh.parent && mesh.parent.type === "Group") {
-                            const edges = new THREE.EdgesGeometry(mesh.geometry, 15); // 境界角度閾値
+                            const edges = new THREE.EdgesGeometry(mesh.geometry, 85); // 境界角度閾値
                             const line = new THREE.LineSegments(
                                 edges,
                                 new THREE.LineBasicMaterial({
@@ -1172,7 +1169,6 @@ let loadModel;
                                     opacity: 1
                                 })
                             );
-
                             mesh.add(line);
 
                             // ★ エッジラインを userData に保存
@@ -1364,14 +1360,21 @@ let loadModel;
                                     (parseFloat(getComputedStyle(a).getPropertyValue("--zIndex")) || 0)
                                 )[0] || null;
 
-                            Object.values(labels).forEach(labelObj => {
-                                const labelElement = labelObj.element;
-
-                                if (labelElement.classList.contains("opened") && labelElement !== topLabel) {
-                                    labelElement.classList.remove("opened");
-                                    maps_addLabelTransition(labelElement);
-                                }
-                            });
+                            if (
+                                Math.abs(x - touchStart[0]) < 5 &&
+                                Math.abs(y - touchStart[1]) < 5
+                            ) {
+                                Object.values(labels).forEach(labelObj => {
+                                    const labelElement = labelObj.element;
+                                    if (
+                                        labelElement.classList.contains("opened") &&
+                                        labelElement !== topLabel
+                                    ) {
+                                        labelElement.classList.remove("opened");
+                                        maps_addLabelTransition(labelElement);
+                                    }
+                                });
+                            }
                             if (topLabel) {
                                 topLabel.classList.toggle("opened");
                                 maps_addLabelTransition(topLabel);
@@ -1446,6 +1449,16 @@ let loadModel;
                                 if (Math.abs(element.style.getPropertyValue("--camDistance") - camDistance) > .1) {
                                     element.style.setProperty("--camDistance", camDistance);
                                 }
+
+                                function distaceTest () {
+                                    // element.textContent = `${ Math.floor(100000 - (camDistance * 100)) }`;
+                                    // element.textContent = `${Math.floor(camDistance * 10000) / 10000}`;
+                                    element.textContent = `${objPos.x}\n${objPos.z}`;
+                                    element.style.minWidth = "6em";
+                                    element.style.minHeight = "3em";
+                                    element.style.fontSize = ".5em";
+                                }
+                                // distaceTest();
 
                                 // const transformValue = `translate3d(${leftPx}px, ${topPx}px, 0)`;
 
@@ -1702,11 +1715,11 @@ let loadModel;
                         // コンパスを回転
                         compass.style.transform = `rotate(${camHorizontal}deg)`;
 
-                        if (now - lastLabelUpdate > 10) {
+                        if (now - lastLabelUpdate > 5) {
                             updateLabelsPosition();
                             lastLabelUpdate = now;
 
-                            const button_dimension_text = isShow2DMap ? "2D" : "3D";
+                            const button_dimension_text = isShow2DMap ? "3D" : "2D";
                             if (lastIsShow2DMap !== isShow2DMap) updateButtonText(button_dimension, button_dimension_text);
 
                             lastIsShow2DMap = isShow2DMap;
@@ -1943,7 +1956,7 @@ let loadModel;
                         el.classList.remove("invalid");
                     });
                 } else {
-                    allButtons.forEach((el, index, arr) => {
+                    allButtons.forEach(el => {
                         el.classList.remove("invalid");
                         if (el !== button) {
                             el.classList.add("invalid");
@@ -2107,14 +2120,13 @@ let loadModel;
         if (Date.now() - lastTouchendTime < 50) return;
         barTransitionUpdate();
         const isNowOpen = exhibitsBottomBar.classList.contains("opened");
-        console.log("isNowOpen : ", isNowOpen);
         if (Math.abs(difference[1]) !== 0 || e?.target === sortList_topBar) {
             if (e?.target === sortList_topBar && Math.abs(difference[1]) === 0) { // topBarTap
-                barHeightUpdate( !isNowOpen);
+                barHeightUpdate(!isNowOpen);
             } else if (isHolded) { // swipe
                 console.log("Math.abs(difference[1])", Math.abs(difference[1]));
                 const threshold = 100;
-                barHeightUpdate( isNowOpen ? difference[1] * -1 < threshold : difference[1] > threshold );
+                barHeightUpdate(isNowOpen ? difference[1] * -1 < threshold : difference[1] > threshold);
             }
         }
         isHolded = false;

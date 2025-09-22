@@ -105,7 +105,7 @@
     position: absolute;
     right: 10px;
     top: 10px;
-    font-size: .75em;
+    font-size: .8em;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -397,6 +397,9 @@
     );
     width: 100%;
     overflow: hidden;
+}
+.content.main .exhibits .tile .content .mapsView .labelsArea .mapsLabel .informations .location{
+    right: auto;
 }
 .content.main .exhibits .tile .content .mapsView .labelsArea .mapsLabel.addTransition {
     transition:
