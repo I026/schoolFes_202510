@@ -414,7 +414,7 @@ function tabClassUpdate (tabIndex) {
     contents[tabIndex].classList.add("nowShow");
 }
 
-function barTabClicked (tabIndex) {
+function barTabClick (tabIndex) {
     bottomBar_contents.scrollTo({
         top: 0,
         left: tabIndex * bottomBar_contents.scrollWidth,
@@ -425,7 +425,10 @@ function barTabClicked (tabIndex) {
 }
 
 // カメラ
-const maps_renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
+const maps_renderer = new THREE.WebGLRenderer({
+    antialias: false,
+    alpha: true
+});
 const maps_aspect = window.innerWidth / window.innerHeight;
 const maps_cameraSize = 1.2; // 表示範囲の大きさ（好みで調整）
 const maps_camera = new THREE.OrthographicCamera(
@@ -659,7 +662,7 @@ for (let i = 0; i < exhibitsLength; i += 1) {
     })();
     location.addEventListener("click", e => {
         e.stopPropagation();
-        barTabClicked(1);
+        barTabClick(1);
         Object.values(maps_locations).forEach((item, index) => {
             if (getExhibits(i)[1] === item) {
                 const targetObj = maps_modelParts[Object.keys(maps_locations)[index]];
@@ -845,12 +848,12 @@ let loadModel;
         tab.className = "tab";
         tab.innerHTML = item;
 
-        tab.addEventListener("click", () => barTabClicked(index));
+        tab.addEventListener("click", () => barTabClick(index));
 
         sortList_tabs.appendChild(tab);
 
         if (index === 0) setTimeout(() => {
-            barTabClicked(index);
+            barTabClick(index);
         });
     });
 
@@ -863,7 +866,7 @@ let loadModel;
         }
         const tabIndex = Math.round(getScrollRatio());
         if (!isBarTouchNow && getScrollRatio() % 1 === 0) {
-            barTabClicked(tabIndex);
+            barTabClick(tabIndex);
         }
         barHeightUpdate();
     }
@@ -1027,16 +1030,17 @@ let loadModel;
         mapsView.className = "mapsView";
         maps_labelsArea.className = "labelsArea";
         compassBar.className = "compassBar";
-        compass.className = "compass";
+        compass.className = "compass button";
         
-        compass.innerHTML = '<img src="medias/images/compass.svg"/>';
+        const compassImg = d.createElement("img");
+        compassImg.src = "medias/images/compass.svg";
+        compass.appendChild(compassImg);
 
         const scene = new THREE.Scene();
         scene.background = null; // 背景色
 
-        maps_renderer.setPixelRatio(window.devicePixelRatio * .9);
+        maps_renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
         maps_renderer.shadowMap.enabled = false;
-        maps_renderer.setPixelRatio(window.devicePixelRatio * .9);
 
         // 描画領域を mapsView に追加
         mapsView.appendChild(maps_renderer.domElement);
@@ -1048,7 +1052,7 @@ let loadModel;
         
         // 太陽の位置を取得
         const light = new THREE.DirectionalLight(0xffffff, 1);
-        light.castShadow = true;
+        light.castShadow = false;
         light.shadow.mapSize.width = 1024;
         light.shadow.mapSize.height = 1024;
         light.shadow.bias = -0.0001;
@@ -1129,15 +1133,47 @@ let loadModel;
 
                     const mergeObjs = [];
                     model.traverse(child => {
+                        // Skip adding objects with fully transparent materials or named "Transparent"
                         if (child.isMesh) {
+                            // Check for "Transparent" material name or full opacity 0
+                            let skip = false;
+                            let materials = Array.isArray(child.material) ? child.material : [child.material];
+                            for (const mat of materials) {
+                                if (
+                                    (mat && mat.name === "Transparent") ||
+                                    (mat && mat.transparent && mat.opacity === 0)
+                                ) {
+                                    skip = true;
+                                    break;
+                                }
+                            }
+                            if (skip) return; // Do not add to scene or maps_modelParts
                             maps_modelParts[child.name] = child;
                             child.castShadow = false;
                             child.receiveShadow = false;
+                            child.frustumCulled = true; // Explicitly enable frustum culling
                         }
                         if (child.type === "Object3D") {
                             const meshes = [];
                             child.traverse((sub) => {
-                                if (sub.isMesh) meshes.push(sub);
+                                // Only add meshes that are not fully transparent and not with "Transparent" material name
+                                if (sub.isMesh) {
+                                    let skipMesh = false;
+                                    let mats = Array.isArray(sub.material) ? sub.material : [sub.material];
+                                    for (const mat of mats) {
+                                        if (
+                                            (mat && mat.name === "Transparent") ||
+                                            (mat && mat.transparent && mat.opacity === 0)
+                                        ) {
+                                            skipMesh = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!skipMesh) {
+                                        sub.frustumCulled = true; // Enable frustum culling for each mesh
+                                        meshes.push(sub);
+                                    }
+                                }
                             });
                             if (meshes.length === 0) return;
 
@@ -1152,9 +1188,15 @@ let loadModel;
                             // ジオメトリ統合
                             const transformedGeometries = meshes
                                 .filter(mesh => {
-                                    // 特定の名前のマテリアルが適用されているメッシュを除外
+                                    // Exclude meshes with "Transparent" material or fully transparent
                                     const material = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
-                                    return material?.name !== "Transparent";
+                                    if (
+                                        material?.name === "Transparent" ||
+                                        (material?.transparent && material?.opacity === 0)
+                                    ) {
+                                        return false;
+                                    }
+                                    return true;
                                 })
                                 .map(mesh => {
                                     let geom = mesh.geometry.clone();
@@ -1444,7 +1486,8 @@ let loadModel;
                         let lastHandleEventAt;
 
                         function handleEvent(x, y) {
-                            if (Date.now() - lastHandleEventAt < 100) return;
+                            if ((Date.now() - lastHandleEventAt) < 500) return;
+                            lastHandleEventAt = Date.now();
                             
                             const candidateLabels = [];
 
@@ -1489,18 +1532,16 @@ let loadModel;
                                 topLabel.classList.toggle("opened");
                                 maps_addLabelTransition(topLabel);
                             }
-
-                            lastHandleEventAt = Date.now();
                         }
 
-                        document.addEventListener("mousedown", (e) => touchStart = [e.clientX, e.clientY]);
-                        document.addEventListener("mouseup", (e) => handleEvent(e.clientX, e.clientY));
+                        d.addEventListener("mousedown", (e) => touchStart = [e.clientX, e.clientY]);
+                        d.addEventListener("mouseup", (e) => handleEvent(e.clientX, e.clientY));
 
-                        document.addEventListener("touchstart", (e) => {
+                        d.addEventListener("touchstart", (e) => {
                             const touch = e.touches[0];
                             touchStart = [touch.clientX, touch.clientY];
                         });
-                        document.addEventListener("touchend", (e) => {
+                        d.addEventListener("touchend", (e) => {
                             const touch = e.changedTouches[0];
                             handleEvent(touch.clientX, touch.clientY);
                         });
@@ -1512,7 +1553,8 @@ let loadModel;
 
                     const getFmtedPx = (px) => px.replace("px", "");
                     function updateLabelsPosition() {
-                        const rect = maps_renderer.domElement.getBoundingClientRect();
+                        const bottomBar_contents_rect = bottomBar_contents.getBoundingClientRect();
+                        const maps_renderer_rect = maps_renderer.domElement.getBoundingClientRect();
                         Object.values(labels).forEach(({ element, part }, index) => {
                             const vector = new THREE.Vector3();
                             if (part.geometry) {
@@ -1527,16 +1569,18 @@ let loadModel;
 
                                 part.localToWorld(vector);
                             }
+                            const isAlwaysShow = maps_locations[part.name]?.isAlwaysShow || false;
+
                             vector.project(maps_camera);
 
-                            const rectWidthHalf  = rect.width  / 2;
-                            const rectHeightHalf = rect.height / 2;
+                            const rectWidthHalf  = maps_renderer_rect.width  / 2;
+                            const rectHeightHalf = maps_renderer_rect.height / 2;
 
                             const camPos = maps_camera.position;
                             const objPos = part.userData?.originalTransform?.position.clone() || part.getWorldPosition(new THREE.Vector3());
                             const camDistance = camPos.distanceTo(objPos);
 
-                            if (gsap.getProperty(Array.isArray(part.material) ? part.material[0] : part.material, "opacity") === 1) {
+                            if ((gsap.getProperty(Array.isArray(part.material) ? part.material[0] : part.material, "opacity") === 1) || isAlwaysShow) {
                                 if (getIsSortConforming(element, getSortConditions())) {
                                     if (element.classList.contains("invalid")) element.classList.remove("invalid");
                                 } else {
@@ -1589,7 +1633,6 @@ let loadModel;
                                     element.style.setProperty(labelHeightProperty, labelHeight + "px");
                                 }
 
-                                const isAlwaysShow = maps_locations[part.name]?.isAlwaysShow || false;
                                 let leftPx = Math.floor(truncate( vector.x * rectWidthHalf  + rectWidthHalf  - element.offsetWidth  / 2) * 100) / 100;
                                 let topPx  = Math.floor(truncate(-vector.y * rectHeightHalf + rectHeightHalf - element.offsetHeight / 2) * 100) / 100;
                                 const max = Math.max;
@@ -1602,14 +1645,14 @@ let loadModel;
                                 if (isAlwaysShow) {
                                     leftPx = min(
                                         max(leftPx, margin),
-                                        rect.width - element.offsetWidth - margin
+                                        maps_renderer_rect.width - element.offsetWidth - margin
                                     );
                                 }
                                 const originalTopPx = topPx;
                                 if (isAlwaysShow) {
                                     topPx = min(
-                                        max(topPx, areaTopMargin + margin),
-                                        rect.height - element.offsetHeight - margin
+                                        max(topPx, (areaTopMargin + 100) + margin),
+                                        bottomBar_contents_rect.height - element.offsetHeight - margin - 50
                                     );
                                 }
                                 const difference = {
@@ -1621,6 +1664,12 @@ let loadModel;
                                     difference.left,
                                     difference.top,
                                 );
+                                element.style.setProperty("--arrowScale", min(
+                                    min(
+                                        Math.abs(difference.left) + Math.abs(difference.top),
+                                    ) * .2,
+                                    35
+                                ) + "px");
                                 element.style.setProperty("--differenceDeg",`${differenceDeg}deg`);
                                 if (originalLeftPx - rectHeightHalf > 0) {
                                     if (!element.classList.contains("right")) {
@@ -1641,19 +1690,21 @@ let loadModel;
                                     if (element.classList.contains("edge")) element.classList.remove("edge");
                                 }
 
+                                const updateThreshold = Math.min(window.innerWidth * .002, 2);
                                 if (
-                                    Math.abs(getFmtedPx(element.style.getPropertyValue("--leftPx")) - leftPx) > .1
+                                    Math.abs(getFmtedPx(element.style.getPropertyValue("--leftPx")) - leftPx) > updateThreshold
                                 ) {
                                     const setLeft = (value) => element.style.setProperty("--leftPx", value);
                                     setLeft(`${isAlwaysShow ? leftPx : originalLeftPx}px`);
+                                    console.log(updateThreshold + "px");
                                 }
                                 if (
-                                    Math.abs(getFmtedPx(element.style.getPropertyValue("--topPx")) - topPx) > .1
+                                    Math.abs(getFmtedPx(element.style.getPropertyValue("--topPx")) - topPx) > updateThreshold
                                 ) {
                                     const setTop = (value) => element.style.setProperty("--topPx", value);
                                     setTop(`${isAlwaysShow ? topPx : originalTopPx}px`);
                                 }
-                                if (Math.abs(element.style.getPropertyValue("--camDistance") - camDistance) > .1) {
+                                if (Math.abs(element.style.getPropertyValue("--camDistance") - camDistance) > updateThreshold) {
                                     element.style.setProperty("--camDistance", camDistance);
                                 }
                                 element.style.setProperty("--objPosX", objPos.x);
@@ -1870,11 +1921,11 @@ let loadModel;
                         camVertical = Math.asin(cameraDirection.y) * -radToDeg;
 
                         // コンパスを回転
-                        compass.style.transform = `rotate(${camHorizontal}deg)`;
+                        compassImg.style.transform = `rotate(${camHorizontal}deg)`;
 
-                        if (now - lastLabelUpdate > 5) {
-                            updateLabelsPosition();
+                        if (now - lastLabelUpdate > 27.5) {
                             lastLabelUpdate = now;
+                            updateLabelsPosition();
 
                             const button_dimension_text = isShow2DMap ? "3D" : "2D";
                             if (lastIsShow2DMap !== isShow2DMap) updateButtonText(button_dimension, button_dimension_text);
@@ -1911,7 +1962,7 @@ let loadModel;
                     console.log((xhr.loaded / xhr.total * 100) + '% loaded');
                 },
                 (error) => {
-                    console.error('モデル読み込みエラー', error);
+                    console.error("モデル読み込みエラー", error);
                 }
             );
         };
@@ -2171,7 +2222,6 @@ let loadModel;
         (() => {
             button_dimension.addEventListener("click", () => {
                 isShow2DMap = !isShow2DMap;
-                mapsView.style.pointerEvents = "none";
                 if (isShow2DMap) {
                     updateCameraAngle({
                         horizontal: getCamHorizontalSnap(camHorizontal),
@@ -2198,7 +2248,6 @@ let loadModel;
                         horizontal: camHorizontal,
                         onComplete: () => {
                             setCamAngleLimit();
-                            mapsView.style.pointerEvents = "auto";
                         }
                     });
                     controlMethodUpdate();
@@ -2206,8 +2255,8 @@ let loadModel;
                 if (get_isEveryFloorValid()) maps_changeFloor(1);
             });
 
-            maps_buttons_right.appendChild(compass);
             maps_buttons_right.appendChild(button_dimension);
+            maps_buttons_top.appendChild(compass);
         })();
 
         // mapsView.appendChild(compassBar);
@@ -2258,8 +2307,9 @@ let loadModel;
         ) isHolded = true;
 
         difference = [touchStartPos[0] - currentPos[0], touchStartPos[1] - currentPos[1]];
+        const bottomBarHeight = touchStart_height + difference[1] + (difference[1] < 0 ? holdStartThreshold : -holdStartThreshold);
         if (isHolded) {
-            exhibitsBottomBar.style.setProperty("--bottomBarHeight", `${touchStart_height + difference[1] + (difference[1] < 0 ? holdStartThreshold : -holdStartThreshold)}px`);
+            exhibitsBottomBar.style.setProperty("--bottomBarHeight", `${bottomBarHeight}px`);
         }
     });
 
@@ -2274,11 +2324,15 @@ let loadModel;
 
     function touchend (e) {
         exhibitsBottomBar.classList.remove("nowBeingHeld");
-        if (Date.now() - lastTouchendTime < 50) return;
+        if (Date.now() - lastTouchendTime < (
+            Math.min( Math.max(50, Math.max(1000 - window.innerWidth, 0) * .1), 200 )
+        )) return;
         barTransitionUpdate();
         const isNowOpen = exhibitsBottomBar.classList.contains("opened");
         if (Math.abs(difference[1]) !== 0 || e?.target === sortList_topBar) {
             if (e?.target === sortList_topBar && Math.abs(difference[1]) === 0) { // topBarTap
+                e.preventDefault();
+                e.stopPropagation();
                 barHeightUpdate(!isNowOpen);
             } else if (isHolded) { // swipe
                 console.log("Math.abs(difference[1])", Math.abs(difference[1]));
