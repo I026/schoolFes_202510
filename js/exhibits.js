@@ -40,13 +40,11 @@ function queryParameter ({
     url: url = new URL(window.location.href),
 }) {
     let returnValue = null;
-    console.log("type : ", type);
     switch (type) {
         case "set":
             url.searchParams.set(key, value);
             break;
         case "append":
-            console.log("value : ", value);
             (value instanceof Array ? value : [value]).forEach(item => {
                 url.searchParams.append(key, item);
             });
@@ -483,7 +481,8 @@ function maps_frameObject({
     camera: camera = maps_camera,
     controls: controls = maps_controls,
     duration: duration = 1,
-    isToCenter: isToCenter = true
+    isToCenter: isToCenter = true,
+    zoom: zoom = 3,
 }) {
     if (!target?.geometry) return;
 
@@ -501,7 +500,7 @@ function maps_frameObject({
 
     // ズームもスムーズに変更する場合
     gsap.to(camera, {
-        zoom: 2, // 目標ズーム値
+        zoom: zoom, // 目標ズーム値
         duration: duration,
         ease: "power2.inOut",
         onUpdate: () => camera.updateProjectionMatrix()
@@ -635,7 +634,6 @@ for (let i = 0; i < exhibitsLength; i += 1) {
             getExhibits(i)[0].split("_")[1]
         );
     }
-    console.log("getExhibits(i)[1] : ", getExhibits(i)[1]);
 
     names.textContent = getExhibits(i)[1].name;
     names.classList.add("names");
@@ -780,16 +778,11 @@ function updateSort () {
 
         const targetElements = [];
         exhibitsArea.querySelectorAll(":scope > div.tile").forEach(tileItem => {
-            console.log(
-                "tileItem : ", tileItem.getAttribute("tag"),
-                "\nconditions : ", conditions
-            );
             // if (tileItem.getAttribute("tag").includes(conditions.join(","))) {
             if (getIsSortConforming(tileItem, conditions)) {
                 targetElements.push(tileItem);
             }
         });
-        console.log("targetElements : ", targetElements);
         targetElements.forEach(element => {
             setTileVisible(element, true);
             activeAllTiles.push(element);
@@ -937,7 +930,6 @@ let loadModel;
                 tag_isCheckeds.push(tag.classList.contains("checkedBox"));
             });
 
-            // console.log(tag_isCheckeds);
             const isAllSelected = tag_isCheckeds.every(item => item === false);
             if (isAllSelected) { // すべてのタグが選ばれていない
                 resetButton.classList.remove("checkedBox");
@@ -1297,8 +1289,6 @@ let loadModel;
                         }
                         blinkBrinkerLight("Bus_Body_6");
                     })();
-
-                    console.log("パーツ一覧:", maps_modelParts);
 
                     // エッジ線を追加（親レベルのメッシュのみ、子メッシュの内部構造は無視）
                     Object.values(maps_modelParts).forEach((mesh) => {
@@ -1690,21 +1680,28 @@ let loadModel;
                                     if (element.classList.contains("edge")) element.classList.remove("edge");
                                 }
 
-                                const updateThreshold = Math.min(window.innerWidth * .002, 2);
+                                const posUpdateThreshold = max(
+                                    min(
+                                        (
+                                            (1000 - window.innerWidth) * .0025 * (maps_camera.zoom - .5)
+                                        ),
+                                        5
+                                    ),
+                                    1
+                                );
                                 if (
-                                    Math.abs(getFmtedPx(element.style.getPropertyValue("--leftPx")) - leftPx) > updateThreshold
+                                    Math.abs(getFmtedPx(element.style.getPropertyValue("--leftPx")) - leftPx) > posUpdateThreshold
                                 ) {
                                     const setLeft = (value) => element.style.setProperty("--leftPx", value);
                                     setLeft(`${isAlwaysShow ? leftPx : originalLeftPx}px`);
-                                    console.log(updateThreshold + "px");
                                 }
                                 if (
-                                    Math.abs(getFmtedPx(element.style.getPropertyValue("--topPx")) - topPx) > updateThreshold
+                                    Math.abs(getFmtedPx(element.style.getPropertyValue("--topPx")) - topPx) > posUpdateThreshold
                                 ) {
                                     const setTop = (value) => element.style.setProperty("--topPx", value);
                                     setTop(`${isAlwaysShow ? topPx : originalTopPx}px`);
                                 }
-                                if (Math.abs(element.style.getPropertyValue("--camDistance") - camDistance) > updateThreshold) {
+                                if (Math.abs(element.style.getPropertyValue("--camDistance") - camDistance) > posUpdateThreshold) {
                                     element.style.setProperty("--camDistance", camDistance);
                                 }
                                 element.style.setProperty("--objPosX", objPos.x);
@@ -1731,10 +1728,15 @@ let loadModel;
                     }
 
                     // 描画ループ
+                    let lastAnimUpdateAt;
+                    const animUpdateThresholdMs = 28;
                     function animate() {
                         requestAnimationFrame(animate);
-                        maps_controls.update();
-                        maps_renderer.render(scene, maps_camera);
+                        if ((Date.now() - lastAnimUpdateAt > animUpdateThresholdMs * .6) || !lastAnimUpdateAt) {
+                            maps_controls.update();
+                            maps_renderer.render(scene, maps_camera);
+                            lastAnimUpdateAt = Date.now();
+                        }
                     }
                     animate();
 
@@ -1749,8 +1751,6 @@ let loadModel;
                                 // センサーが存在しない場合は処理しない
                                 return;
                             }
-
-                            console.log("deviceHeading : ", deviceHeading);
                             updateCameraAngle({
                                 horizontal: -deviceHeading,
                                 duration: 0
@@ -1923,7 +1923,7 @@ let loadModel;
                         // コンパスを回転
                         compassImg.style.transform = `rotate(${camHorizontal}deg)`;
 
-                        if (now - lastLabelUpdate > 27.5) {
+                        if (now - lastLabelUpdate > animUpdateThresholdMs) {
                             lastLabelUpdate = now;
                             updateLabelsPosition();
 
@@ -1931,35 +1931,12 @@ let loadModel;
                             if (lastIsShow2DMap !== isShow2DMap) updateButtonText(button_dimension, button_dimension_text);
 
                             lastIsShow2DMap = isShow2DMap;
-
-                            return;
-                            const is3D = (
-                                Math.abs(getCamHorizontalSnap(camHorizontal) - camHorizontal) > 1 ||
-                                (Math.round(Math.abs(camVertical)) < 85)
-                            );
-
-                            isShow2DMap = !is3D && button_dimensionMode_2D();
-
-                            if (isShow2DMap) {
-                                controlMethodUpdate({
-                                    touches: {
-                                        ONE: THREE.TOUCH.PAN,
-                                        TWO: THREE.TOUCH.DOLLY_PAN
-                                    },
-                                    mouseButtons: {
-                                        LEFT: THREE.MOUSE.PAN,
-                                        MIDDLE: THREE.MOUSE.NONE,
-                                        RIGHT: THREE.MOUSE.NONE
-                                    }
-                                });
-                            } else {
-                                controlMethodUpdate();
-                            }
                         }
                     });
                 },
                 (xhr) => {
-                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+                    const loadPercentage = xhr.loaded / xhr.total * 100
+                    if (loadPercentage === 100) console.log("3DModel", loadPercentage + "% loaded");
                 },
                 (error) => {
                     console.error("モデル読み込みエラー", error);
@@ -2053,8 +2030,6 @@ let loadModel;
             duration = 1,
             onComplete: finish
         } = {}) {
-            console.log("updateCameraAngle : ", horizontal, vertical);
-
             // 回転禁止＆慣性無効化
             let prevDamping;
             setTimeout(() => {
@@ -2335,7 +2310,6 @@ let loadModel;
                 e.stopPropagation();
                 barHeightUpdate(!isNowOpen);
             } else if (isHolded) { // swipe
-                console.log("Math.abs(difference[1])", Math.abs(difference[1]));
                 const threshold = 100;
                 barHeightUpdate(isNowOpen ? difference[1] * -1 < threshold : difference[1] > threshold);
             }
