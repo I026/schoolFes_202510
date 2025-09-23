@@ -75,12 +75,7 @@ const titleMap = {
     d.head.appendChild(link_font3);
 })();
 
-async function getIsDevMode () {
-    return await getHashSHA256(localStorage.getItem("devMode")) === "729e344a01e52c822bdfdec61e28d6eda02658d2e7d2b80a9b9029f41e212dde";
-};
-
 function addGoogleTag () { // Google tag
-    if (getIsDevMode()) return;
     const script1 = d.createElement("script");
     script1.setAttribute("async", "");
     script1.src = "https://www.googletagmanager.com/gtag/js?id=G-T9TS0VR3ED";
@@ -91,7 +86,16 @@ function addGoogleTag () { // Google tag
     d.head.appendChild(script1);
     d.head.appendChild(script2);
 };
-addGoogleTag();
+
+(async () => { // isDevMode?
+    const isDevMode = await getHashSHA256(localStorage.getItem("devMode")) === "729e344a01e52c822bdfdec61e28d6eda02658d2e7d2b80a9b9029f41e212dde";
+    if (isDevMode) {
+        titleMap.devMode = "(HelloWorld!)";
+    } else {
+        addGoogleTag();
+    }
+    updateFooterContents();
+})();
 
 (() => { // favicon
     const link_favicon = d.createElement("link");
@@ -389,7 +393,23 @@ function footer_partition () {
 footers.className = "footers";
 footer.className = "footer button";
 
-(() => {
+function addFooterContent (item) {
+    const footer_contents = d.createElement("div");
+    footer_contents.className = `content${item[1] ? ` ${item[1]}` : ""}`;
+
+    let newItem = item;
+    if (!Array.isArray(item)) newItem = [item];
+
+    if (typeof newItem[0] === "string") {
+        footer_contents.innerHTML = newItem[0];
+    } else {
+        footer_contents.appendChild(newItem[0]);
+    }
+    
+    footer.appendChild(footer_contents);
+}
+
+function updateFooterContents () {
     const pageList = d.createElement("div");
     pageList.classList = "pageList";
 
@@ -399,7 +419,7 @@ footer.className = "footer button";
 
         a.className = "content";
         a.innerHTML = titleMap[key];
-        a.href = getHref(key);
+        a.href = key.includes("devMode") ? "https://github.com/I026/web/tree/main/schoolFes_202510" : getHref(key);
         
         underLine.className = "underLine";
 
@@ -414,22 +434,10 @@ footer.className = "footer button";
         [pageList],
         ["<span class='name'>制作 : 中学2年1組 小暮千秋</span>", "title"],
     ];
-    contentsArray.forEach((item, i) => {
-        const footer_contents = d.createElement("div");
-        footer_contents.className = `content${item[1] ? ` ${item[1]}` : ""}`;
-
-        let newItem = item;
-        if (!item[0]) newItem = [item];
-
-        if (typeof newItem[0] === "string") {
-            footer_contents.innerHTML = newItem[0];
-        } else {
-            footer_contents.appendChild(newItem[0]);
-        }
-        
-        footer.appendChild(footer_contents);
+    contentsArray.forEach(item => {
+        addFooterContent(item);
     });
-})();
+};
 
 d.body.appendChild(footers);
 footers.appendChild(footer);
