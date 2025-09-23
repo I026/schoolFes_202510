@@ -499,7 +499,7 @@
         ),
         1em
     ), 0em);
-    width:  var(--width);
+    width:  min(var(--width), 5.2em);
     height: var(--height);
     --labelBackgroundColor: rgba(128, 128, 128, .9);
     background-color: var(--labelBackgroundColor);
@@ -656,7 +656,7 @@
     padding: var(--labelPadding);
     border-radius: calc(var(--labelPadding) * 2);
     width:  var(--width);
-    font-size: calc(var(--fontSize) * 1.5);
+    font-size: calc(var(--fontSize) * 1.75);
     height: calc(var(--height) - var(--labelPadding));
     margin-top: calc(var(--height) * -.5);
     z-index: 10001 !important;
@@ -665,6 +665,27 @@
     color: white;
     opacity: 1;
     --webkit-backdrop-filter: blur(10px);
+}
+.content.main .exhibits .tile .content .mapsView .labelsArea .mapsLabel::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    display: block;
+    top: 0;
+    right: 0;
+    width: 40%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity var(--transitionDuration) ease-in-out;
+}
+.content.main .exhibits .tile .content .mapsView .labelsArea .mapsLabel.over::after {
+    opacity: 1;
+}
+.content.main .exhibits .tile .content .mapsView .labelsArea .mapsLabel::after {
+    background: linear-gradient(to left, var(--labelBackgroundColor) 0%, transparent 100%);
+}
+.content.main .exhibits .tile .content .mapsView .labelsArea .mapsLabel.opened::after {
+    background: transparent;
 }
 .content.main .exhibits .tile .content .mapsView .labelsArea .mapsLabel .informations {
     position: relative;

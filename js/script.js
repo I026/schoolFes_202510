@@ -7,6 +7,15 @@ const mainContent  = d.querySelector(".main.content");
 let HTMLFileName = window.location.pathname.split("/").pop().split(".")[0];
 if (HTMLFileName == "") HTMLFileName = "index";
 
+async function getHashSHA256(message) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(message);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  // 16進数に変換
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
 const titleMap = {
     index: "デジタルパンフレット",
     exhibits: "企画一覧",
@@ -65,6 +74,24 @@ const titleMap = {
     d.head.appendChild(link_font2);
     d.head.appendChild(link_font3);
 })();
+
+async function getIsDevMode () {
+    return await getHashSHA256(localStorage.getItem("devMode")) === "729e344a01e52c822bdfdec61e28d6eda02658d2e7d2b80a9b9029f41e212dde";
+};
+
+function addGoogleTag () { // Google tag
+    if (getIsDevMode()) return;
+    const script1 = d.createElement("script");
+    script1.setAttribute("async", "");
+    script1.src = "https://www.googletagmanager.com/gtag/js?id=G-T9TS0VR3ED";
+    
+    const script2 = d.createElement("script");
+    script2.innerHTML = "window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-T9TS0VR3ED');";
+
+    d.head.appendChild(script1);
+    d.head.appendChild(script2);
+};
+addGoogleTag();
 
 (() => { // favicon
     const link_favicon = d.createElement("link");
