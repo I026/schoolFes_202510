@@ -65,7 +65,7 @@ body {
     margin: 0;
     padding: 0;
     --pagesPadding: 20px;
-    --pageWidth: calc(100vw - var(--pagesPadding) * 2);
+    --pageWidth : calc(100vw - var(--pagesPadding) * 2);
     --pageHeight: calc(100vh - var(--topBarHeight) - var(--pagesPadding));
     /* height: calc(100vw * var(--numOfPageContents)); */
     /* (var(--pageWidth) + var(--pagesPadding)) * var(--numOfPageContents) */
@@ -116,6 +116,9 @@ body {
     padding: var(--pagesPadding);
     width : calc(var(--pageWidth) - var(--pagesPadding) * 2);
     height: calc(var(--pageHeight) - var(--pagesPadding) * 2);
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
 }
 .content.main .pages .page:last-child {
     margin-right: var(--pagesPadding);
@@ -123,8 +126,14 @@ body {
 
 .content.main .pages .page svg path {
     stroke-width: 50;
-    stroke-dashoffset: var(--pathLength);
+    stroke-dashoffset: calc(
+        max(
+            var(--pathLength) * (var(--contentsIndex) - var(--scrollLeftRatio))
+            0
+        )
+    );
+    /* transition: stroke-dashoffset .5s ease-in-out; */
 }
-.content.main .pages .page.anim svg path {
-    stroke-dashoffset: var(--pathLength);
-}
+/* .content.main .pages .page.anim svg path {
+    stroke-dashoffset: 0;
+} */
