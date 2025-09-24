@@ -88,11 +88,18 @@ function addGoogleTag () { // Google tag
 };
 
 (async () => { // isDevMode?
-    const isDevMode = await getHashSHA256(localStorage.getItem("devMode")) === "729e344a01e52c822bdfdec61e28d6eda02658d2e7d2b80a9b9029f41e212dde";
-    if (isDevMode) {
-        titleMap.devMode = "(HelloWorld!)";
-    } else {
-        addGoogleTag();
+    try {
+        const isDevMode = await getHashSHA256(localStorage.getItem("devMode") || null) === "729e344a01e52c822bdfdec61e28d6eda02658d2e7d2b80a9b9029f41e212dde";
+        if (isDevMode) {
+            console.log("isDevMode");
+            // titleMap.devMode = "(HelloWorld!)";
+            const title = d.head.querySelector("title");
+            title.textContent = `D_ ${title.textContent}`;
+        } else {
+            addGoogleTag();
+        }
+    } catch (e) {
+        console.log(e);
     }
     updateFooterContents();
 })();
@@ -239,7 +246,7 @@ function setPathViewBox() {
             path.style.setProperty("--pathLength_minus", length * -1);
             
             // アニメーションを設定（indexを使って遅延）
-            path.style.animationDelay = `${index * 0.05}s`;
+            path.style.animationDelay = `${index * (2 / paths.length)}s`;
             if (path.parentElement.parentElement.classList.contains("checkBox")) {
                 setTimeout(() => {
                     path.style.transition = "stroke-dashoffset .5s ease-in-out";
@@ -284,7 +291,7 @@ function setPathViewBox() {
     };
 });
 
-const isLocalFile = window.location.protocol === "file:";
+const isLocalFile = window.location.protocol !== "https:";
 
 const getHref = (item) => `${isLocalFile ? `${item}.html` : `${item === "index" ? "./" : item}`}`;
 
