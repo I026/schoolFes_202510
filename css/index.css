@@ -119,21 +119,48 @@ body {
     overflow: hidden;
     display: flex;
     justify-content: center;
+    opacity: max(
+        calc(
+            var(--scrollLeftRatio) * var(--numOfPageContents) - var(--contentsIndex) + 1.5
+        ),
+        .2
+    );
+    transition: opacity .5s ease-in-out;
 }
 .content.main .pages .page:last-child {
     margin-right: var(--pagesPadding);
 }
 
-.content.main .pages .page svg path {
-    stroke-width: 50;
-    stroke-dashoffset: calc(
-        max(
-            var(--pathLength) * (var(--contentsIndex) - var(--scrollLeftRatio))
-            0
-        )
-    );
-    /* transition: stroke-dashoffset .5s ease-in-out; */
+.content.main .pages .page div {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
-/* .content.main .pages .page.anim svg path {
+.content.main .pages .page div svg, .content.main .pages .page div img {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+}
+.content.main .pages .page div img {
+    --padding: 0;
+    object-fit: cover;
+    height: calc(100% + 50px);
+    width: calc(100% + 50px);
+}
+.content.main .pages .page svg {
+    transform: scaleY(-1);
+}
+.content.main .pages .page svg path {
+    stroke-width: 42;
+    /* stroke-dashoffset: var(--pathLength); */
+    transition: stroke-dashoffset .5s ease-in-out;
+}
+.content.main .pages .page.anim svg path {
     stroke-dashoffset: 0;
-} */
+}
+.content.main .pages .page:not(.visible) > * {
+    display: none;
+}
