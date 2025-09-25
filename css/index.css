@@ -67,7 +67,7 @@ body {
     --pagesPadding: 20px;
     --pageWidth : calc(100vw - var(--pagesPadding) * 2);
     /* --pageHeight: calc(var(--pageWidth) * 1.4075829384); */
-    --pageHeight: calc(100vh - var(--topBarHeight) - var(--pagesPadding));
+    --pageHeight: calc(90vh - var(--topBarHeight) - var(--pagesPadding));
 
     /* height: calc(100vw * var(--numOfPageContents)); */
     /* (var(--pageWidth) + var(--pagesPadding)) * var(--numOfPageContents) */
@@ -87,7 +87,7 @@ body {
 .content.main .pages {
     display: flex;
     justify-content: flex-start;
-    align-items: center;
+    align-items: flex-start;
     position: sticky;
     top: calc(var(--topBarHeight) - var(--pagesPadding) * 2);
     /* padding-top: var(--topBarHeight); */
@@ -114,7 +114,7 @@ body {
     box-shadow: 0 0 10px gray;
     border-radius: var(--pagesPadding);
     flex-shrink: 0;
-    top: var(--pagesPadding);
+    top: calc(var(--pagesPadding) + 30px);
     margin-left: var(--pagesPadding);
     padding: var(--pagesPadding);
     width : calc(var(--pageWidth) - var(--pagesPadding) * 2);
@@ -143,16 +143,14 @@ body {
     justify-content: center;
     align-items: center;
 }
-.content.main .pages .page div svg,
-.content.main .pages .page div img {
+.content.main .pages .page svg,
+.content.main .pages .page img {
     position: relative;
     height: 100%;
     width: 100%;
     display: flex;
-    justify-content: center;
-    align-items: center;
 }
-.content.main .pages .page div img {
+.content.main .pages .page img {
     --padding: 0;
     object-fit: cover;
     height: calc(100% + 50px);
