@@ -100,6 +100,7 @@ body {
     /* transform: translateX(calc(
         (max(var(--scrollPx), var(--pageSlideThreshold)) - var(--pageSlideThreshold)) * -1 * var(--pageSlideRatio)
     )); */
+    scroll-snap-type: x mandatory;
     overflow: hidden;
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE and Edge */
@@ -117,12 +118,13 @@ body {
 }
 .content.main .pages .page {
     position: relative;
+    /* scroll-snap-align: start; */
     /* margin-left: calc(var(--pageWidth) * var(--contentsIndex)); */
     box-shadow: 0 0 10px gray;
     border-radius: var(--pagesPadding);
     flex-shrink: 0;
     top: calc(var(--pagesPadding) * 2);
-    margin-left: var(--pagesPadding);
+    left: var(--pagesPadding);
     padding: var(--pagesPadding);
     width : calc(var(--pageWidth) - var(--pagesPadding) * 2);
     height: calc(var(--pageHeight) - var(--pagesPadding) * 2);

@@ -79,7 +79,10 @@ setInterval(dateUpdate, 10000);
         let pageSlideThreshold;
         let pageSlideRatio;
 
+        let isSlideNow = false;
+
         function windowResize () {
+            if (isSlideNow) return;
             // 横スクロール総距離
             const windowHeight = window.visualViewport?.height || window.innerHeight;
             pagesAreaWidth = pagesArea.scrollWidth - pagesArea.clientWidth;
@@ -136,6 +139,7 @@ setInterval(dateUpdate, 10000);
                     Math.abs(difference[0]) > 5 &&
                     Math.abs(difference[1]) < 30
                 ) {
+                    e.preventDefault();
                     isSlideValid = true;
                     window.scrollTo({
                         top: touchStartScrollY + difference[0] + (difference[0] > 0 ? -5 : 5)
@@ -218,6 +222,32 @@ setInterval(dateUpdate, 10000);
         }
         window.addEventListener("scroll", windowScroll);
         windowScroll();
+
+        // mainContent.addEventListener("touchstart", e => {
+        //     startTouch = [
+        //         e.touches[0].clientX,
+        //         e.touches[0].clientY,
+        //     ];
+        //     startScrollY = window.scrollY;
+        // });
+        // mainContent.addEventListener("touchmove", e => {
+        //     e.preventDefault();
+        //     const difference = [
+        //         startTouch[0] - e.touches[0].clientX,
+        //         startTouch[1] - e.touches[0].clientY,
+        //     ];
+        //     if (Math.abs(difference[0]) > 50 && Math.abs(difference[1]) < 50) {
+        //         isSlideNow = true;
+        //         d.body.style.overflow = "hidden";
+        //         window.scrollTo({
+        //             top: startScrollY + difference[0]
+        //         });
+        //     }
+        // });
+        // mainContent.addEventListener("touchend", () => {
+        //     isSlideNow = false;
+        //     d.body.style.overflow = "auto";
+        // });
     }
 
     // SVGファイルのパス
