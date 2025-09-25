@@ -107,13 +107,21 @@ body {
 .content.main .pages::-webkit-scrollbar {
     display: none;
 }
+.content.main .pages .pageSet {
+    position: relative;
+    top: 0;
+    --pageSetWidth: calc(var(--pageWidth)  + var(--pagesPadding) * 2);
+    width : var(--pageSetWidth);
+    height: calc(var(--pageHeight) + var(--pagesPadding) * 2 + 35px);
+    flex-shrink: 0;
+}
 .content.main .pages .page {
     position: relative;
     /* margin-left: calc(var(--pageWidth) * var(--contentsIndex)); */
     box-shadow: 0 0 10px gray;
     border-radius: var(--pagesPadding);
     flex-shrink: 0;
-    top: calc(var(--pagesPadding) + 30px);
+    top: calc(var(--pagesPadding) * 2);
     margin-left: var(--pagesPadding);
     padding: var(--pagesPadding);
     width : calc(var(--pageWidth) - var(--pagesPadding) * 2);
@@ -134,14 +142,6 @@ body {
     margin-right: var(--pagesPadding);
 }
 
-.content.main .pages .page div {
-    position: relative;
-    height: 100%;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
 .content.main .pages .page svg,
 .content.main .pages .page img {
     position: relative;
@@ -165,9 +165,14 @@ body {
     /* stroke-dashoffset: var(--pathLength); */
     transition: stroke-dashoffset .5s ease-in-out;
 }
-.content.main .pages .page.anim svg path {
-    stroke-dashoffset: 0;
-}
-.content.main .pages .page:not(.visible) > * {
+.content.main .pages .pageSet:not(.visible) > * {
     display: none;
+}
+.content.main .pages .pageSet .noble {
+    position: absolute;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding-right: var(--pageSetWidth);
 }

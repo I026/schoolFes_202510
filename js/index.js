@@ -15,6 +15,16 @@ dateUpdate();
 setInterval(dateUpdate, 10000);
 
 (() => {
+    const arrow = d.querySelector(".top.content .bottomBar svg");
+    arrow.addEventListener("click", () => {
+        window.scrollTo({
+            top: window.innerHeight - 50,
+            behavior: "smooth",
+        });
+    });
+})();
+
+(() => {
     const entries = performance.getEntriesByType("resource");
     const currentScript = entries.find(entry => entry.name.includes("script.js"));
 
@@ -42,13 +52,25 @@ setInterval(dateUpdate, 10000);
         mainContent.style.setProperty("--numOfPageContents", pageContents.length);
         const pageEls = [];
         pageContents.forEach((newContentEl, i) => {
+            const newPageSet = d.createElement("div");
+            newPageSet.className = "pageSet";
+            newPageSet.style.setProperty("--contentsIndex", i);
+            pagesArea.appendChild(newPageSet);
+
             const newPage = d.createElement("div");
             newPage.className = "page";
             newPage.appendChild(newContentEl);
+            newPageSet.appendChild(newPage);
 
-            newPage.style.setProperty("--contentsIndex", i);
-            pagesArea.appendChild(newPage);
-            pageEls.push(newPage);
+            const newNoble = d.createElement("div");
+            newNoble.className = "noble";
+            newPageSet.appendChild(newNoble);
+
+            const newNobleText = d.createElement("span");
+            newNobleText.textContent = `P${i + 1}`;
+            newNoble.appendChild(newNobleText);
+
+            pageEls.push(newPageSet);
         });
         pagesArea.style.position = "sticky";
 
@@ -65,7 +87,6 @@ setInterval(dateUpdate, 10000);
             pageSlideThreshold = windowHeight - (topBarHeight || 100) * .15;
             pageSlideRatio = 1;
             mainContent.style.setProperty("--pageSlideRatio", pageSlideRatio);
-
             const totalHeight = pagesAreaWidth / pageSlideRatio + windowHeight;
             mainContent.style.setProperty("--totalHeight", totalHeight + "px");
         }
@@ -138,9 +159,11 @@ setInterval(dateUpdate, 10000);
                     // 距離 = 速度 × 時間
                     const distance = currentVelocity * deltaTime;
 
+                    const scrollY = window.scrollY;
+
                     // 現在のスクロール位置を加算
                     window.scrollTo({
-                        top: window.scrollY + distance
+                        top: scrollY + distance
                     });
 
                     // 摩擦で徐々に減速
@@ -151,7 +174,7 @@ setInterval(dateUpdate, 10000);
                     }
 
                     // 速度が小さくなったら終了
-                    if (Math.abs(currentVelocity) > 0.07) {
+                    if (Math.abs(currentVelocity) > 0.07 && (scrollY / window.innerHeight > 1)) {
                         requestAnimationFrame(inertiaScroll);
                     }
                 }
@@ -190,6 +213,7 @@ setInterval(dateUpdate, 10000);
             pagesArea.scrollTo({
                 left: scrollLeft
             });
+            pagesArea.style.setProperty("--scrollLeftPx", scrollLeft);
             pagesArea.style.setProperty("--scrollLeftRatio", scrollLeftRatio);
         }
         window.addEventListener("scroll", windowScroll);
