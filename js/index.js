@@ -92,6 +92,8 @@ setInterval(dateUpdate, 10000);
                 velocityX = 0; // 初期化
             });
 
+            let isSlideValid = false;
+
             mainContent.addEventListener("touchmove", e => {
                 const client = [e.touches[0].clientX, e.touches[0].clientY];
                 const now = Date.now();
@@ -108,15 +110,23 @@ setInterval(dateUpdate, 10000);
                     touchStartPos[0] - client[0],
                     touchStartPos[1] - client[1]
                 ];
-                if (difference[1] < 50) {
+                if (!touchStartScrollY) touchStartScrollY = window.scrollY;
+                if (
+                    Math.abs(difference[0]) > 5 &&
+                    Math.abs(difference[1]) < 30
+                ) {
+                    isSlideValid = true;
                     window.scrollTo({
-                        top: touchStartScrollY + difference[0]
+                        top: touchStartScrollY + difference[0] + (difference[0] > 0 ? -5 : 5)
                     });
                 }
             });
 
-            mainContent.addEventListener("touchend", e => {
-                const deceleration = 0.05; // 減速率(px/ms²) 小さいほど長く続く
+            mainContent.addEventListener("touchend", () => {
+                if (!isSlideValid) return;
+                touchStartScrollY = null;
+                isSlideValid = false;
+                const deceleration = 0.0035; // 減速率(px/ms²) 小さいほど長く続く
                 let lastTime = Date.now();
                 let currentVelocity = velocityX; // touchmoveで計算している速度(px/ms)
 
@@ -141,12 +151,12 @@ setInterval(dateUpdate, 10000);
                     }
 
                     // 速度が小さくなったら終了
-                    if (Math.abs(currentVelocity) > 0.01) {
+                    if (Math.abs(currentVelocity) > 0.07) {
                         requestAnimationFrame(inertiaScroll);
                     }
                 }
 
-                if (Math.abs(currentVelocity) > 0.05) { // 一定速度以上なら惰性開始
+                if (Math.abs(currentVelocity) > .7) { // 一定速度以上なら惰性開始
                     requestAnimationFrame(inertiaScroll);
                 }
             });
