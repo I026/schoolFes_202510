@@ -61,7 +61,7 @@ setInterval(dateUpdate, 10000);
             // 横スクロール総距離
             pagesAreaWidth = pagesArea.scrollWidth - pagesArea.clientWidth;
             topBarHeight = parseFloat(getComputedStyle(d.body).getPropertyValue("--topBarHeight"));
-            pageSlideThreshold = window.innerHeight - (topBarHeight || 100) * .5;
+            pageSlideThreshold = window.innerHeight - (topBarHeight || 100) * .15;
             pageSlideRatio = 1;
             mainContent.style.setProperty("--pageSlideRatio", pageSlideRatio);
 
@@ -72,11 +72,11 @@ setInterval(dateUpdate, 10000);
         windowResize();
 
         // 横スクロール同期
-        pagesArea.addEventListener("scroll", () => {
-            window.scrollTo({
-                top: pageSlideThreshold + pagesArea.scrollLeft / pageSlideRatio
-            });
-        });
+        // pagesArea.addEventListener("scroll", () => {
+        //     window.scrollTo({
+        //         top: pageSlideThreshold + pagesArea.scrollLeft / pageSlideRatio
+        //     });
+        // });
 
         function windowScroll () {
             const scrollY = window.scrollY;
@@ -127,16 +127,17 @@ setInterval(dateUpdate, 10000);
             // DOMParserで文字列をパースしてSVG要素にする
             const parser = new DOMParser();
             const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
-            
-            // <path>要素を取得
-            const paths = svgDoc.querySelectorAll("path");
 
             const svg = genPageSvg();
 
-            // 例: ページ上の別のSVGに追加する
-            paths.forEach(path => {
-                svg.appendChild(path.cloneNode(true));
+            // <path>要素と<image>要素をまとめて取得
+            const elements = svgDoc.querySelectorAll("path, image");
+
+            // 取得した要素を追加
+            elements.forEach(el => {
+                svg.appendChild(el.cloneNode(true));
             });
+
             pageContents.push(svg);
 
             if (svgFilePaths.length <= i + 1) {
