@@ -1357,6 +1357,29 @@ let loadModel;
                         });
                     }
 
+                    function createLabelSprite(text) {
+                        const canvas = document.createElement("canvas");
+                        const ctx = canvas.getContext("2d");
+
+                        canvas.width  = 1024;
+                        canvas.height = 512;
+                        ctx.font = "24px Arial";
+                        ctx.fillStyle = "white";
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+                        // Canvas → Texture
+                        const texture = new THREE.CanvasTexture(canvas);
+
+                        // SpriteMaterial
+                        const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+                        const sprite = new THREE.Sprite(material);
+
+                        sprite.scale.set(2, 1, 1); // 表示サイズ（適宜調整）
+                        return sprite;
+                    }
+
                     const labels = {};
                     Object.keys(maps_modelParts).forEach((partName) => {
                         const part = maps_modelParts[partName];
@@ -1381,7 +1404,13 @@ let loadModel;
                             });
                             element.setAttribute("tag", tagAttributes.join(","));
                         }
+                        if (maps_locations[partName]) {
+                            const label = createLabelSprite(maps_locations[partName].name);
+                            label.position.set(0, 1, 0);
+                            scene.add(label);
+                        }
 
+                        // return;
                         if (maps_locations[partName]) {
                             label.className = `mapsLabel${maps_locations[partName].isAlwaysShow ? " alwaysShow" : ""}`;
                             label.setAttribute("exhibits", partName);

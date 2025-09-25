@@ -243,14 +243,12 @@
     box-shadow: none;
 }
 .content.main .exhibits .tile.sortList .tabs .tab:first-of-type {
-    border-top-left-radius: 20px;
-    border-bottom-left-radius: 20px;
-    margin-left: 10px;
+    border-top-left-radius: 15px;
+    border-bottom-left-radius: 15px;
 }
 .content.main .exhibits .tile.sortList .tabs .tab:last-of-type {
-    border-top-right-radius: 20px;
-    border-bottom-right-radius: 20px;
-    margin-right: 10px;
+    border-top-right-radius: 15px;
+    border-bottom-right-radius: 15px;
 }
 
 .content.main .exhibits .tile.sortList .topBar svg g {
@@ -925,8 +923,8 @@
     color: white;
     background-color: black;
     padding-top: 0.1em;
+    padding-left : 0.15em;
     padding-right: 0.25em;
-    padding-left : 0.25em;
     padding-bottom: 0.1em;
     position: relative;
     font-weight: bold;

@@ -66,8 +66,8 @@ body {
     padding: 0;
     --pagesPadding: 20px;
     --pageWidth : calc(100vw - var(--pagesPadding) * 2);
-    /* --pageHeight: calc(var(--pageWidth) * 1.4075829384); */
-    --pageHeight: calc(90vh - var(--topBarHeight) - var(--pagesPadding));
+    --pageHeight: calc(var(--pageWidth) * 1.4075829384);
+    /* --pageHeight: calc(90vh - var(--topBarHeight) - var(--pagesPadding)); */
 
     /* height: calc(100vw * var(--numOfPageContents)); */
     /* (var(--pageWidth) + var(--pagesPadding)) * var(--numOfPageContents) */
@@ -100,8 +100,7 @@ body {
     /* transform: translateX(calc(
         (max(var(--scrollPx), var(--pageSlideThreshold)) - var(--pageSlideThreshold)) * -1 * var(--pageSlideRatio)
     )); */
-    overflow: auto;
-    pointer-events: none;
+    overflow: hidden;
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE and Edge */
 }
@@ -153,8 +152,8 @@ body {
 .content.main .pages .page img {
     --padding: 0;
     object-fit: cover;
-    height: calc(100% + 50px);
-    width: calc(100% + 50px);
+    height: calc(100% - 5px);
+    width: calc(100% - 5px);
 }
 .content.main .pages .page svg image {
     height: 100%;

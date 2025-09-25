@@ -83,7 +83,7 @@ setInterval(dateUpdate, 10000);
             let lastMoveX = 0;
             let velocityX = 0;
 
-            mainContent.addEventListener("touchstart", e => {
+            pagesArea.addEventListener("touchstart", e => {
                 const client = [e.touches[0].clientX, e.touches[0].clientY];
                 touchStartPos = [client[0], client[1]];
                 touchStartScrollY = window.scrollY;
@@ -94,7 +94,7 @@ setInterval(dateUpdate, 10000);
 
             let isSlideValid = false;
 
-            mainContent.addEventListener("touchmove", e => {
+            pagesArea.addEventListener("touchmove", e => {
                 const client = [e.touches[0].clientX, e.touches[0].clientY];
                 const now = Date.now();
 
@@ -122,7 +122,7 @@ setInterval(dateUpdate, 10000);
                 }
             });
 
-            mainContent.addEventListener("touchend", () => {
+            pagesArea.addEventListener("touchend", () => {
                 if (!isSlideValid) return;
                 touchStartScrollY = null;
                 isSlideValid = false;
