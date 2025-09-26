@@ -1,27 +1,3 @@
-import * as THREE from "three";
-import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { gsap } from "https://cdn.jsdelivr.net/npm/gsap@3.12.2/index.js";
-import { CSS2DRenderer, CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer.js";
-
-/**
- * @param {THREE.Object3D} target
- * @param {THREE.OrthographicCamera} camera
- * @param {THREE.OrbitControls} controls
- * @param {number} margin
- */
-
-/* 
-import { SVGLoader } from "three/examples/jsm/loaders/SVGLoader.js";
-import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
-import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
-import { OutlinePass } from "three/examples/jsm/postprocessing/OutlinePass.js";
-import { Line2 } from "three/examples/jsm/lines/Line2.js";
-import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
-import { LineGeometry } from "three/examples/jsm/lines/LineGeometry.js";
-*/
-
 const exhibitsBottomBar = d.querySelector(".exhibits .sortList");
 const exhibitsArea = d.querySelector(".exhibits .list");
 
@@ -422,6 +398,19 @@ function barTabClick (tabIndex) {
     tabClassUpdate(tabIndex);
     barHeightUpdate(true);
 }
+
+import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { gsap } from "https://cdn.jsdelivr.net/npm/gsap@3.12.2/index.js";
+import { CSS2DRenderer, CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer.js";
+/**
+ * @param {THREE.Object3D} target
+ * @param {THREE.OrthographicCamera} camera
+ * @param {THREE.OrbitControls} controls
+ * @param {number} margin
+ */
 
 // カメラ
 const maps_renderer = new THREE.WebGLRenderer({

@@ -67,6 +67,7 @@ body {
     --pagesPadding: 20px;
     --pageWidth : calc(100vw - var(--pagesPadding) * 2);
     --pageHeight: calc(var(--pageWidth) * 1.4075829384);
+    --pageSetWidth: calc(var(--pageWidth)  + var(--pagesPadding) * 2);
     /* --pageHeight: calc(90vh - var(--topBarHeight) - var(--pagesPadding)); */
 
     /* height: calc(100vw * var(--numOfPageContents)); */
@@ -82,6 +83,48 @@ body {
     .content.main {
         --pageWidth: calc(50vw - var(--pagesPadding) * 2);
     }
+    .content.main .pages .buttons .button {
+        opacity: 0 !important;
+        pointer-events: none;
+    }
+}
+
+.content.main .pages .buttons {
+    position: absolute;
+    width: 100%;
+    top: calc(var(--pageHeight) + 35px);
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+    z-index: 10;
+    /* transform: translateX(var(--scrollLeftPx)); */
+    transform: translateX(calc(
+        (min(var(--scrollLeftRatio), 1) * var(--numOfPageContents)) * var(--pageSetWidth)
+    ));
+}
+.content.main .pages .buttons .button {
+    width: min-content;
+    margin: 20px;   
+    user-select: none;
+    --buttonScale: 1.3em;
+    width : var(--buttonScale);
+    height: var(--buttonScale);
+    transition: opacity .5s ease-in-out;
+}
+.content.main .pages .buttons .button.invalid {
+    opacity: .5;
+    pointer-events: none;
+}
+.content.main .pages .buttons .button svg {
+    width: 100%;
+    height: 100%;
+    transform: translateX(15%) rotate(45deg);
+}
+.content.main .pages .buttons .button svg path {
+    stroke-width: 100;
+}
+.content.main .pages .buttons .button:last-child {
+    transform: scale(-1);
 }
 
 .content.main .pages {
@@ -93,10 +136,10 @@ body {
     /* padding-top: var(--topBarHeight); */
     /* padding: var(--pagesPadding); */
     left: 0;
-    --pageSlideThreshold: calc(100vh + var(--topBarHeight) * .5);
     /* gap: var(--pagesPadding); */
     width : 100vw;
     height: calc(100vh - var(--topBarHeight) + var(--pagesPadding) * 2);
+    /* --pageSlideThreshold: calc(100vh + var(--topBarHeight) * .5); */
     /* transform: translateX(calc(
         (max(var(--scrollPx), var(--pageSlideThreshold)) - var(--pageSlideThreshold)) * -1 * var(--pageSlideRatio)
     )); */
@@ -109,9 +152,9 @@ body {
     display: none;
 }
 .content.main .pages .pageSet {
+    user-select: none;
     position: relative;
     top: 0;
-    --pageSetWidth: calc(var(--pageWidth)  + var(--pagesPadding) * 2);
     width : var(--pageSetWidth);
     height: calc(var(--pageHeight) + var(--pagesPadding) * 2 + 35px);
     flex-shrink: 0;
@@ -166,9 +209,6 @@ body {
     stroke-width: 42;
     /* stroke-dashoffset: var(--pathLength); */
     transition: stroke-dashoffset .5s ease-in-out;
-}
-.content.main .pages .pageSet:not(.visible) > * {
-    display: none;
 }
 .content.main .pages .pageSet .noble {
     position: absolute;

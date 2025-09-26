@@ -544,7 +544,8 @@
     justify-content: center;
     align-items: center;
     opacity: 0;
-    transition: opacity .5s ease-in-out;
+    transition:
+    opacity .5s ease-in-out;
 }
 .content.main .exhibits .tile .content .mapsView .labelsArea .mapsLabel.edge.right {
     /* transform: translateX(-3.5em); */
@@ -571,6 +572,7 @@
 .content.main .exhibits .tile .content .mapsView .labelsArea .mapsLabel.edge:not(.alwaysShow) {
     opacity: 0;
 }
+
 .content.main .exhibits .tile .content .mapsView .labelsArea .mapsLabel.edge.alwaysShow {
     /* --arrowScale: 25px; */
     transform: translate(var(--labelXPx), var(--labelYPx)) !important;
@@ -827,16 +829,25 @@
         var(--bottomBarHeight) - var(--topMargin) - var(--buttonsHeight) * 2
     )
 }
+.content.main .exhibits .tile:not(.opened) .content .buttons.right,
+.content.main .exhibits .tile:not(.opened) .content .buttons.left {
+    opacity: 0;
+    transition:
+    top .5s ease-in-out,
+    opacity .5s ease-in-out;
+}
+.content.main .exhibits .tile .content .buttons.right,
+.content.main .exhibits .tile .content .buttons.left {
+    top: var(--topPos);
+}
 .content.main .exhibits .tile .content .buttons.right {
     right: 5px;
     justify-content: flex-end;
-    top: var(--topPos);
 }
 .content.main .exhibits .tile .content .buttons.left {
     left: 5px;
     flex-direction: row-reverse;
     justify-content: flex-start;
-    top: var(--topPos);
 }
 .content.main .exhibits .tile .content .buttons.top {
     display: flex;

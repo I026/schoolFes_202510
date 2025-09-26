@@ -74,31 +74,18 @@ setInterval(dateUpdate, 10000);
         });
         pagesArea.style.position = "sticky";
 
-        let pagesAreaWidth;
         let topBarHeight;
-        let pageSlideThreshold;
-        let pageSlideRatio;
+        const getPagesAreaWidth = () => pagesArea.scrollWidth - pagesArea.clientWidth;
+        let windowHeight;
+        const getWindowHeight = () => windowHeight;
+        const getPageSlideThreshold = () => getWindowHeight() - (topBarHeight || 100) * .1;
+        const pageSlideRatio = 1;
+
+        let scrollLeftPx;
+        let scrollLeftRatio;
 
         let isSlideNow = false;
-
-        function windowResize () {
-            if (isSlideNow) return;
-            // 横スクロール総距離
-            const windowHeight = window.visualViewport?.height || window.innerHeight;
-            pagesAreaWidth = pagesArea.scrollWidth - pagesArea.clientWidth;
-            topBarHeight = parseFloat(getComputedStyle(d.body).getPropertyValue("--topBarHeight"));
-            pageSlideThreshold = windowHeight - (topBarHeight || 100) * .15;
-            pageSlideRatio = 1;
-            mainContent.style.setProperty("--pageSlideRatio", pageSlideRatio);
-            const totalHeight = pagesAreaWidth / pageSlideRatio + windowHeight;
-            mainContent.style.setProperty("--totalHeight", totalHeight + "px");
-        }
-        let lastTimeWindowHeight;
-        window.addEventListener("resize", () => {
-            if (Math.abs(lastTimeWindowHeight - window.innerHeight) > 100) windowResize();
-            lastTimeWindowHeight = window.innerHeight;
-        });
-        windowResize();
+        const getCurrentPageIdx = () => Math.round(scrollLeftRatio * pageContents.length);
 
         (() => {
             let touchStartScrollY;
@@ -142,7 +129,8 @@ setInterval(dateUpdate, 10000);
                     e.preventDefault();
                     isSlideValid = true;
                     window.scrollTo({
-                        top: touchStartScrollY + difference[0] + (difference[0] > 0 ? -5 : 5)
+                        top: touchStartScrollY + difference[0] + (difference[0] > 0 ? -5 : 5),
+                        behavior: "smooth"
                     });
                 }
             });
@@ -167,7 +155,8 @@ setInterval(dateUpdate, 10000);
 
                     // 現在のスクロール位置を加算
                     window.scrollTo({
-                        top: scrollY + distance
+                        top: scrollY + distance,
+                        behavior: "smooth"
                     });
 
                     // 摩擦で徐々に減速
@@ -179,7 +168,7 @@ setInterval(dateUpdate, 10000);
 
                     // 速度が小さくなったら終了
                     if (Math.abs(currentVelocity) > 0.07 && (scrollY / window.innerHeight > 1)) {
-                        requestAnimationFrame(inertiaScroll);
+                        // requestAnimationFrame(inertiaScroll);
                     }
                 }
 
@@ -187,12 +176,98 @@ setInterval(dateUpdate, 10000);
                     requestAnimationFrame(inertiaScroll);
                 }
             });
+        });
+
+        const getScrollLeftPx     = (scrollY) => (Math.max(scrollY, getPageSlideThreshold()) - getPageSlideThreshold()) * pageSlideRatio;
+        const getScrollYFromRatio = (ratio)   => (ratio * (pagesArea.scrollWidth - pagesArea.clientWidth) / pageSlideRatio) + getPageSlideThreshold();
+
+        const pageButtons = pagesArea.querySelectorAll(".buttons .button");
+
+        let lastSlideAt = 0;
+        function pageSlide (isToNext = true) {
+            // 現在ページを基準に移動
+            const currentIndex = getCurrentPageIdx();
+            const nextIndex = Math.max(Math.min(currentIndex + (isToNext ? 1 : -1), pageContents.length - 1), 0);
+            let targetIndex = currentIndex;
+            targetIndex += isToNext ? 1 : -1;      // 次のページ
+
+            // ページ範囲内に収める
+            targetIndex = Math.max(0, Math.min(pageContents.length - 1, targetIndex));
+
+            const getIsSlideValid = (index = currentIndex) => (
+                (!isToNext && index !== 0) || (isToNext && index !== pageContents.length)
+            );
+
+            if (getIsSlideValid()) {
+                if ((Date.now() - lastSlideAt) > 100) {
+                    // スクロール位置をスナップ
+                    window.scrollTo({
+                        top: getScrollYFromRatio(targetIndex / pageContents.length),
+                        behavior: "smooth"
+                    });
+                    lastSlideAt = Date.now();
+                }
+            }
+        }
+
+        (() => {
+            let touchStartScrollY;
+            let touchStartPos = [];
+            let lastMoveX = 0;
+            let velocityX = 0;
+            let isSlideValid = false;
+            let difference;
+
+            pagesArea.addEventListener("touchstart", e => {
+                const client = [e.touches[0].clientX, e.touches[0].clientY];
+                difference = [0, 0];
+                touchStartPos = [client[0], client[1]];
+                touchStartScrollY = window.scrollY;
+                lastMoveX = client[0];
+                velocityX = 0; // 初期化
+            });
+
+            pagesArea.addEventListener("touchmove", e => {
+                const client = [e.touches[0].clientX, e.touches[0].clientY];
+
+                difference = [
+                    touchStartPos[0] - client[0],
+                    touchStartPos[1] - client[1]
+                ];
+                if (!touchStartScrollY) touchStartScrollY = window.scrollY;
+            });
+
+            pagesArea.addEventListener("touchend", () => {
+                const difX = difference?.[0];
+                const difY = difference?.[1];
+
+                if (
+                    Math.abs(difX) > 50 &&
+                    difY < 50 &&
+                    window.innerWidth < 800
+                ) {
+                    pageSlide(difX > 50)
+                }
+            });
         })();
+
+        pageButtons.forEach((button, i) => {
+            if (i === 0) {
+                button.addEventListener("click", () => {
+                    pageSlide(false);
+                });
+            }
+            if (i === 1) {
+                button.addEventListener("click", () => {
+                    pageSlide(true);
+                });
+            }
+        });
 
         function windowScroll () {
             const scrollY = window.scrollY;
-            const scrollLeft = (Math.max(scrollY, pageSlideThreshold) - pageSlideThreshold) * pageSlideRatio;
-            const scrollLeftRatio = scrollLeft / pagesAreaWidth || 0;
+            scrollLeftPx = getScrollLeftPx(scrollY);
+            scrollLeftRatio = scrollLeftPx / getPagesAreaWidth() || 0;
 
             pageEls[Math.round(scrollLeftRatio * pageContents.length + .45)]?.classList.add("anim");
 
@@ -212,46 +287,48 @@ setInterval(dateUpdate, 10000);
                         pageEl.classList.remove("visible");
                     }
                 });
-            })();
+            });
 
             pagesArea.scrollTo({
-                left: scrollLeft
+                left: scrollLeftPx
             });
-            pagesArea.style.setProperty("--scrollLeftPx", scrollLeft);
+            pagesArea.style.setProperty("--scrollLeftPx", scrollLeftPx + "px");
             pagesArea.style.setProperty("--scrollLeftRatio", scrollLeftRatio);
+
+            pageButtons[0].classList.remove("invalid");
+            pageButtons[1].classList.remove("invalid");
+            if (getCurrentPageIdx() >= pageContents.length - 1) {
+                pageButtons[1].classList.add("invalid");
+            }
+            if (getCurrentPageIdx() <= 0) {
+                pageButtons[0].classList.add("invalid");
+            }
         }
         window.addEventListener("scroll", windowScroll);
         windowScroll();
 
-        // mainContent.addEventListener("touchstart", e => {
-        //     startTouch = [
-        //         e.touches[0].clientX,
-        //         e.touches[0].clientY,
-        //     ];
-        //     startScrollY = window.scrollY;
-        // });
-        // mainContent.addEventListener("touchmove", e => {
-        //     e.preventDefault();
-        //     const difference = [
-        //         startTouch[0] - e.touches[0].clientX,
-        //         startTouch[1] - e.touches[0].clientY,
-        //     ];
-        //     if (Math.abs(difference[0]) > 50 && Math.abs(difference[1]) < 50) {
-        //         isSlideNow = true;
-        //         d.body.style.overflow = "hidden";
-        //         window.scrollTo({
-        //             top: startScrollY + difference[0]
-        //         });
-        //     }
-        // });
-        // mainContent.addEventListener("touchend", () => {
-        //     isSlideNow = false;
-        //     d.body.style.overflow = "auto";
-        // });
+        function windowResize () {
+            if (isSlideNow) return;
+            // 横スクロール総距離
+            windowHeight = window.visualViewport?.height || window.innerHeight;
+            topBarHeight = parseFloat(getComputedStyle(d.body).getPropertyValue("--topBarHeight"));
+            mainContent.style.setProperty("--pageSlideRatio", pageSlideRatio);
+            const totalHeight = getPagesAreaWidth() / pageSlideRatio + getWindowHeight();
+            mainContent.style.setProperty("--totalHeight", totalHeight + "px");
+        }
+        let lastTimeWindowHeight;
+        window.addEventListener("resize", () => {
+            if (Math.abs(lastTimeWindowHeight - window.innerHeight) > 100) windowResize();
+            lastTimeWindowHeight = window.innerHeight;
+        });
+        windowResize();
     }
 
     // SVGファイルのパス
     const filePaths = [
+        "./medias/pages/0.png",
+        "./medias/pages/0.png",
+        "./medias/pages/0.png",
         "./medias/pages/0.png",
         "./medias/pages/0.png",
         "./medias/pages/0.png",
