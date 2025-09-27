@@ -110,6 +110,7 @@
 .content.main .exhibits .tile .description {
     top: 15px;
     position: relative;
+    display: block;
     width: calc(100% - var(--padding) * 2);
     padding: var(--padding);
 }
@@ -124,6 +125,25 @@
     align-items: center;
     height: 1.25em;
     transition: height .5s ease-in-out;
+}
+.content.main .exhibits .tile .images {
+    position: relative;
+    margin: 5px;
+    margin-top: 30px;
+    height: 40vh;
+    padding: 5px;
+    height: min-content;
+}
+.content.main .exhibits .tile.opened .images img {
+    opacity: 1;
+}
+.content.main .exhibits .tile .images img {
+    opacity: 0;
+    object-fit: cover;
+    width : 100%;
+    height: 100%;
+    border-radius: 2em;
+    transition: opacity .5s ease-in-out;
 }
 .content.main .exhibits .tile.hidden .location {
     height: calc(var(--whenHiddenHeight) / 2 - 10px);
@@ -299,6 +319,7 @@
     align-items: center;
 }
 .content.main .exhibits .tile .names {
+    height: 1em;
     position: relative;
     width: calc(100% - var(--padding) * 2);
     padding: var(--padding);
@@ -314,6 +335,7 @@
     bottom: 0;
     left: 0;
     width: 100%;
+    height: 2.2em;
     display: flex;
     transition: opacity .5s ease-in-out;
     z-index: 5;
@@ -327,9 +349,6 @@
     white-space: nowrap;
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE and Edge */
-}
-.content.main .exhibits .list .tile .tags {
-    position: absolute;
 }
 .content.main .exhibits .list .tile .tags::before,
 .content.main .exhibits .list .tile .tags::after {
@@ -495,15 +514,15 @@
         .75em
     );
     font-size: var(--fontSize);
-    height: min-content;
     /* font-size: max(min(
         calc(
             min(max(max(.6vw, .6vh), .2em), .65em) * var(--camZoom)
         ),
         1em
     ), 0em); */
-    width:  min(var(--width), 5.2em);
-    height: var(--height);
+    --labelMinScale: .8em;
+    width:  max(min(var(--width), 5.2em), var(--labelMinScale));
+    height: max(var(--height), var(--labelMinScale));
     --labelBackgroundColor: rgba(128, 128, 128, .9);
     background-color: var(--labelBackgroundColor);
     overflow: hidden;
@@ -546,6 +565,17 @@
     opacity: 0;
     transition:
     opacity .5s ease-in-out;
+}
+@keyframes labelShowAnim {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: var(--labelOpacity);
+    }
+}
+.content.main .exhibits .tile .content .mapsView .labelsArea .mapsLabel:not(.edge) {
+    animation: labelShowAnim .5s ease-in-out;
 }
 .content.main .exhibits .tile .content .mapsView .labelsArea .mapsLabel.edge.right {
     /* transform: translateX(-3.5em); */
@@ -666,7 +696,7 @@
     padding: var(--labelPadding);
     border-radius: calc(var(--labelPadding) * 2);
     width:  var(--width);
-    font-size: calc(var(--fontSize) * 1.75);
+    font-size: calc(var(--fontSize) * 1.25);
     height: calc(var(--height) - var(--labelPadding));
     margin-top: calc(var(--height) * -.5);
     z-index: 10001 !important;

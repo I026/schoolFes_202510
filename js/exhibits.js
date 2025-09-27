@@ -51,6 +51,7 @@ const exhibits = {
             "byClass",
             "J1",
         ],
+        image: "medias/exhibits/J1_1.png",
     },
     J1_2: {
         name: "テスト文",
@@ -124,9 +125,6 @@ const exhibits = {
     H3_6: {
         name: "お化け屋敷(らしい)",
         description: "(らしいよ!! そうらしい!!!!!!!)",
-        location: {
-            name: "あなたのいえのてんじょうのうえらへん"
-        },
         tag: [
             "byClass",
             "H3",
@@ -136,22 +134,138 @@ const exhibits = {
 
 const maps_pointIcon = '<img src="medias/images/mapPoint.svg"/>';
 
+const maps_words = {
+    Subjects: {
+        Japanese: "日本語",
+        Math: "数学",
+        English: "英語",
+        Science: "理科",
+        SocialStudies: "社会",
+        Music: "音楽",
+        Life: "人間生活",
+        Art: "美術",
+        PhysicalEdu: "体育",
+        Information: "情報",
+        Woodworking: "木工",
+    },
+    Subject: "科",
+    Room: "室",
+    Laboratory: "研究",
+    Preparation: "準備",
+    NextTo: "の隣",
+    Inside: "の中",
+    Infront: "の前",
+};
+
+const maps_locationNames = {
+    Entrance: "入口",
+    Woodworking: `${maps_words.Subjects.Woodworking}${maps_words.Room}`,
+    Dining: "食堂",
+    Gym: `${maps_words.Subjects.PhysicalEdu}館`,
+    Art: `${maps_words.Subjects.Art}棟`,
+    Multipurpose: "多目的ホール",
+    Science_A: `${maps_words.Subjects.Science}${maps_words.Room}A`,
+    Science_B: `${maps_words.Subjects.Science}${maps_words.Room}B`,
+    Science_C: `${maps_words.Subjects.Science}${maps_words.Room}C`,
+    Science_D: `${maps_words.Subjects.Science}${maps_words.Room}D`,
+    Science_Preparation: `${maps_words.Subjects.Science}${maps_words.Preparation}${maps_words.Room}`,
+    Science_Laboratory: `${maps_words.Subjects.Science}${maps_words.Laboratory}${maps_words.Room}`,
+    SocialStudies_Laboratory: `${maps_words.Subjects.SocialStudies}${maps_words.Subject}${maps_words.Laboratory}${maps_words.Room}`,
+    English_Laboratory: `${maps_words.Subjects.English}${maps_words.Subject}${maps_words.Laboratory}${maps_words.Room}`,
+    Music_Small: `小${maps_words.Subjects.Music}${maps_words.Room}`,
+    Music_Large: `大${maps_words.Subjects.Music}${maps_words.Room}`,
+    Life_Laboratory: `${maps_words.Subjects.Life}${maps_words.Subject}${maps_words.Laboratory}${maps_words.Room}`,
+    Cooking: `調理${maps_words.Room}`,
+    Music_2: `第2${maps_words.Subjects.Music}${maps_words.Room}`,
+    Music_3: `第3${maps_words.Subjects.Music}${maps_words.Room}`,
+    Computers: `${maps_words.Subjects.Information}教${maps_words.Room}`,
+    Math_Laboratory: `${maps_words.Subjects.Math}${maps_words.Subject}${maps_words.Laboratory}${maps_words.Room}`,
+    Music_Laboratory: `${maps_words.Subjects.Music}${maps_words.Subject}${maps_words.Laboratory}${maps_words.Room}`,
+};
+
 const maps_locations = {
     F1_Entrance_Arch: {
-        name: "入口",
+        name: maps_locationNames.Entrance,
         emphasis: true,
         location: {
             name: "正面玄関"
         },
         isAlwaysShow: true,
     },
-    F1_Dining004: {
-        name: "食堂",
+    Dining_Roof: {
+        name: maps_locationNames.Dining,
         offset: {
             y: .2,
         },
         isAlwaysShow: true,
     },
+
+    F1_Art_WC: {
+        location: {
+            name: `${maps_locationNames.Art}${maps_words.Inside}`,
+        }
+    },
+    F1_Dining_WC: {
+        location: {
+            name: `${maps_locationNames.Dining}${maps_words.Inside}`,
+        }
+    },
+    F1_J_WC: {
+        location: {
+            name: `${getClassName("J", 1, 3)}${maps_words.NextTo}`,
+        }
+    },
+    F2_J_WC: {
+        location: {
+            name: `${getClassName("J", 2, 3)}${maps_words.NextTo}`,
+        }
+    },
+    F3_J_WC: {
+        location: {
+            name: `${getClassName("J", 3, 3)}${maps_words.NextTo}`,
+        }
+    },
+    F1_H_WC: {
+        location: {
+            name: `${getClassName("H", 1, 4)}${maps_words.Infront}`,
+        }
+    },
+    F2_H_WC: {
+        location: {
+            name: `${getClassName("H", 2, 4)}${maps_words.Infront}`,
+        }
+    },
+    F3_H_WC: {
+        location: {
+            name: `${getClassName("H", 3, 4)}${maps_words.Infront}`,
+        }
+    },
+    F1_WC: {
+        location: {
+            name: `${maps_locationNames.Science_Preparation}${maps_words.NextTo}`,
+        }
+    },
+    F2_WC: {
+        location: {
+            name: `${maps_locationNames.Cooking}${maps_words.NextTo}`,
+        }
+    },
+    F3_WC: {
+        location: {
+            name: `${maps_locationNames.Computers}${maps_words.NextTo}`,
+        }
+    },
+    F1_Gym_WC: {
+        location: {
+            name: `${maps_locationNames.Gym}${maps_words.Inside}`,
+        }
+    },
+    F1_Gym_WC001: {
+        location: {
+            name: `${maps_locationNames.Gym}${maps_words.Inside}`,
+        }
+    },
+
     F1_Certificate_Table: {
         name: maps_pointIcon,
         description: "金券",
@@ -160,12 +274,114 @@ const maps_locations = {
         },
     },
     F1_Gym_Entrance: {
-        name: "体育館",
+        name: maps_locationNames.Gym,
     },
     F1_Art: {
-        name: "美術棟",
+        name: maps_locationNames.Art,
         offset: {
             y: .5,
+        },
+    },
+    F1_Multipurpose: {
+        location: {
+            name: maps_locationNames.Multipurpose,
+        },
+    },
+    F1_Woodworking: {
+        location: {
+            name: maps_locationNames.Woodworking,
+        },
+        offset: {
+            y: .5,
+        },
+    },
+    F1_Science_A: {
+        location: {
+            name: maps_locationNames.Science_A,
+        },
+    },
+    F1_Science_B: {
+        location: {
+            name: maps_locationNames.Science_B,
+        },
+    },
+    F1_Science_C: {
+        location: {
+            name: maps_locationNames.Science_C,
+        },
+    },
+    F1_Science_D: {
+        location: {
+            name: maps_locationNames.Science_D,
+        },
+    },
+    F1_Science_Preparation: {
+        location: {
+            name: maps_locationNames.Science_Preparation,
+        },
+    },
+    F1_Science_Laboratory: {
+        location: {
+            name: maps_locationNames.Science_Laboratory,
+        },
+        offset: {
+            y: .5,
+        },
+    },
+    F2_SocialStudies_Laboratory: {
+        location: {
+            name: maps_locationNames.SocialStudies_Laboratory,
+        },
+    },
+    F2_English_Laboratory: {
+        location: {
+            name: maps_locationNames.English_Laboratory,
+        },
+    },
+    F2_Music_Small: {
+        location: {
+            name: maps_locationNames.Music_Small,
+        },
+    },
+    F2_Music_Large: {
+        location: {
+            name: maps_locationNames.Music_Large,
+        },
+    },
+    F2_Life_Laboratory: {
+        location: {
+            name: maps_locationNames.Life_Laboratory,
+        },
+    },
+    F2_Cooking: {
+        location: {
+            name: maps_locationNames.Cooking,
+        },
+    },
+
+    F3_Music_2: {
+        location: {
+            name: maps_locationNames.Music_2,
+        },
+    },
+    F3_Music_3: {
+        location: {
+            name: maps_locationNames.Music_3,
+        },
+    },
+    F3_Computers: {
+        location: {
+            name: maps_locationNames.Computers,
+        },
+    },
+    F3_Math_Laboratory: {
+        location: {
+            name: maps_locationNames.Math_Laboratory,
+        },
+    },
+    F3_Music_Laboratory: {
+        location: {
+            name: maps_locationNames.Music_Laboratory,
         },
     },
 
@@ -342,6 +558,17 @@ const tagOrder = {
 
 function openTile (targetTile, isToOpen = !targetTile.classList.contains("opened")) {
     const allTiles = exhibitsArea.querySelectorAll(".tile");
+
+    targetTile.style.setProperty("--tileOpenHeight", (() => {
+        let height = 0;
+        Array.from(targetTile.children).forEach(child => {
+            height += (
+                child.scrollHeight
+            );
+        });
+        return height;
+    })() + "px");
+
     allTiles.forEach(element => {
         if (element !== targetTile) element.classList.remove("opened");
     });
@@ -427,6 +654,7 @@ const maps_camera = new THREE.OrthographicCamera(
     1,
     200
 );
+
 const maps_labelRenderer = new CSS2DRenderer();
 const maps_labelsArea = maps_labelRenderer.domElement;
 maps_labelsArea.style.position = "absolute";
@@ -598,6 +826,7 @@ for (let i = 0; i < exhibitsLength; i += 1) {
     const location = d.createElement("div");
     const description = d.createElement("div");
     const tagsContent = d.createElement("div");
+    const images = d.createElement("div");
     const tags = d.createElement("div");
 
     tile.setAttribute("exhibits", getExhibits(i)[0]);
@@ -631,6 +860,14 @@ for (let i = 0; i < exhibitsLength; i += 1) {
 
     names.textContent = getExhibits(i)[1].name;
     names.classList.add("names");
+    
+    images.className = "images";
+    const image = d.createElement("img");
+    images.appendChild(image);
+    if (getExhibits(i)[1].image) {
+        image.src = getExhibits(i)[1].image;
+        images.appendChild(image);
+    }
 
     const locationText = d.createElement("span");
     locationText.className = "locationText";
@@ -699,6 +936,7 @@ for (let i = 0; i < exhibitsLength; i += 1) {
     tile.appendChild(names);
     tile.appendChild(location);
     tile.appendChild(description);
+    tile.appendChild(images);
     tile.appendChild(tags);
     tags.appendChild(tagsContent);
     exhibitsArea.appendChild(tile);
@@ -711,14 +949,6 @@ for (let i = 0; i < exhibitsLength; i += 1) {
     }
     scroll();
     tagsContent.addEventListener("scroll", scroll);
-
-    tile.style.setProperty("--tileOpenHeight", (() => {
-        let height = 20;
-        Array.from(tile.children).forEach(child => {
-            height += child.scrollHeight;
-        });
-        return height;
-    })() + "px");
 }
 
 function getSortConditions () {
@@ -1024,7 +1254,9 @@ let loadModel;
         const scene = new THREE.Scene();
         scene.background = null; // 背景色
 
-        maps_renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+        maps_renderer.setPixelRatio(Math.min(
+            window.devicePixelRatio, 150
+        ));
         maps_renderer.shadowMap.enabled = false;
 
         // 描画領域を mapsView に追加
@@ -1365,11 +1597,18 @@ let loadModel;
                     Object.keys(maps_modelParts).forEach((partName) => {
                         const part = maps_modelParts[partName];                        
 
-                        if (partName.includes("_WC")) {
+                        if (
+                            partName.includes("_WC") &&
+                            !maps_locations[partName]?.name
+                        ) {
+                            const locationName = maps_locations[partName]?.location.name;
                             maps_locations[partName] = {
                                 name: '<img src="medias/images/wc.svg"/>',
-                                description: `トイレ ${maps_getFloor(partName)[0]}階`
-                            }
+                                location: {
+                                    name: locationName
+                                },
+                                description: `トイレ ${maps_getFloor(partName)[0]}階`,
+                            };
                         }
 
                         if (!maps_locations[partName]) return;
@@ -1384,7 +1623,9 @@ let loadModel;
 
                             setTagAttributes(maps_locations[partName].tag, label);
 
-                            const isHTMLTag = maps_locations[partName].name.includes("<");
+                            if (!maps_locations[partName]?.name) maps_locations[partName].name = maps_pointIcon;
+
+                            const isHTMLTag = maps_locations[partName]?.name?.includes("<");
 
                             const titleText = isHTMLTag ? maps_locations[partName].name : truncateText(maps_locations[partName].name, 10);
                             const descriptionText = maps_locations[partName]?.description;
@@ -1574,7 +1815,7 @@ let loadModel;
                                     if (element.classList.contains("invalid")) element.classList.remove("invalid");
                                     element.style.setProperty("--labelOpacity", 1);
                                 } else {
-                                    if (!element.classList.contains("invalid")) element.classList.add("invalid");
+                                    // if (!element.classList.contains("invalid")) element.classList.add("invalid");
                                     element.style.setProperty("--labelOpacity", .5);
                                 }
                             } else {
@@ -1664,7 +1905,9 @@ let loadModel;
                                         difference[0],
                                     ) * (180 / Math.PI)}deg`);
                                 } else {
-                                    element.classList.remove("edge");
+                                    if (element.classList.contains("edge")) {
+                                        element.classList.remove("edge");
+                                    }
                                 }
                                 // element.style.setProperty("--camDistance", camDistance);
                             }
@@ -1831,7 +2074,7 @@ let loadModel;
                         ) return;
                         const now = Date.now();
 
-                        maps_camera.zoom = THREE.MathUtils.clamp(maps_camera.zoom, .6, 5);
+                        maps_camera.zoom = THREE.MathUtils.clamp(maps_camera.zoom, .2, 5);
                         maps_camera.updateProjectionMatrix();
 
                         (() => {
@@ -1908,8 +2151,8 @@ let loadModel;
             maps_camera.bottom = -maps_cameraSize;
             maps_camera.updateProjectionMatrix();
 
-            maps_renderer.setSize(mapsView.clientWidth, mapsView.clientHeight + barTopMargin);
             maps_renderer.domElement.style.top = `${barTopMargin * -1}px`;
+            maps_renderer.setSize(mapsView.clientWidth, mapsView.clientHeight + barTopMargin);
             maps_labelRenderer.setSize(mapsView.clientWidth, mapsView.clientHeight + barTopMargin);
             maps_labelsArea.style.top = 0;
 
@@ -1933,17 +2176,18 @@ let loadModel;
         } = {}) {
             if (mesh.userData.edgeLine) {
                 const edgeMat = mesh.userData.edgeLine.material;
+                mesh.userData.edgeLine.visible = opacity !== 0;
                 gsap.to(edgeMat.color, {
                     r: new THREE.Color(color).r,
                     g: new THREE.Color(color).g,
                     b: new THREE.Color(color).b,
                     duration: duration,
-                    ease: "power2.inOut"
+                    ease: "power2.inOut",
                 });
                 gsap.to(edgeMat, {
                     opacity: opacity,
                     duration: duration,
-                    ease: "power2.inOut"
+                    ease: "power2.inOut",
                 });
             }
         }
@@ -2139,7 +2383,7 @@ let loadModel;
                         ease: "power2.inOut"
                     });
                     setEdgeStyle(part, {
-                        opacity: isPartActive ? 1 : .05
+                        opacity: isPartActive ? 1 : 0
                     });
                 });
 
