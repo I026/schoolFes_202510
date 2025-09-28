@@ -1005,7 +1005,7 @@ function getExhibitsSearch (exhibit, searchWord = getSearchValue()) {
         if (
             !searchWord ||
             searchWord === "" ||
-            splited.length > 1
+            splited?.length > 1
         ) {
             isHit = true;
             searchHits.push([target, i]);
@@ -1264,7 +1264,7 @@ function scrollToTile(value, offsetY = 0) {
                 Math.abs(currentY - Math.min(targetY, maxY)) <= tolerance ||
                 Date.now() - executionTime > 1000
             ) {
-                callback();
+                if (callback) callback();
             } else {
                 requestAnimationFrame(checkScroll);
             }
@@ -1275,18 +1275,34 @@ function scrollToTile(value, offsetY = 0) {
     }
 
     if (!targetTile) return;
-    const existingTransition = targetTile.style.transition;
-    // exhibitsArea.querySelectorAll(".tile").forEach(tileItem => {
-    //     tileItem.style.transition = "none";
-    // });
-    targetTile.style.transition = "none";
-    const rect = targetTile.getBoundingClientRect();
-    const scrollTop = window.scrollY || document.documentElement.scrollTop;
-    const targetY = rect.top + scrollTop - 120 + offsetY;
-    targetTile.style.transition = existingTransition;
-    scrollToAndThen(targetY, () => {
-        exhibitsArea.querySelectorAll(".tile").forEach(tileItem => {
-            tileItem.style.transition = existingTransition;
+
+    const tileOpenDatas = [];
+    const allTiles = exhibitsArea.querySelectorAll(":scope > .tile");
+
+    allTiles.forEach(tileItem => {
+        tileOpenDatas.push(tileItem.classList.contains("opened"));
+        tileItem.style.transition = "none";
+        requestAnimationFrame(() => {
+            openTile(tileItem, false);
+        });
+    });
+
+    requestAnimationFrame(() => {
+        const rect = targetTile.getBoundingClientRect();
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const targetY = rect.top + scrollTop - 120 + offsetY;
+
+        allTiles.forEach((tileItem, i) => {
+            if (tileOpenDatas[i]) tileItem.classList.add("opened");
+            requestAnimationFrame(() => {
+                tileItem.style.transition = "";
+            });
+        });
+        // openTile(targetTile, false);
+
+        requestAnimationFrame(() => {
+            scrollToAndThen(targetY);
+            openTile(targetTile, true);
         });
     });
 }
@@ -1355,7 +1371,7 @@ const getSearchValue = () => searchBarsEl.classList.contains("opened") ? newSear
                 const newSet = d.createElement("div");
                 newSet.addEventListener("click", () => {
                     const targetEl = sortResult.elements[i];
-                    openTile(targetEl, true);
+                    // openTile(targetEl, true);
                     scrollToTile(targetEl, sagestsHeight * -1 - 50);
                 });
 
@@ -1897,7 +1913,7 @@ const getSearchValue = () => searchBarsEl.classList.contains("opened") ? newSear
                                             maps_locations[partName].onClick();
                                         } else if (detailTile) {
                                             barHeightUpdate(false);
-                                            openTile(detailTile, true);
+                                            // openTile(detailTile, true);
                                             scrollToTile(detailTile);
                                         }
                                     });
