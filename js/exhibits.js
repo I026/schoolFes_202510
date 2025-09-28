@@ -10,39 +10,6 @@ const getClassName = (school, input_grade, input_class) => (
     `${school == "H" || input_class > 3 ? "高校" : "中学"} ${input_grade}年${input_class}組`
 );
 
-function queryParameter ({
-    type: type = "set",
-    key: key,
-    value: value,
-    url: url = new URL(window.location.href),
-}) {
-    let returnValue = null;
-    switch (type) {
-        case "set":
-            url.searchParams.set(key, value);
-            break;
-        case "append":
-            (value instanceof Array ? value : [value]).forEach(item => {
-                url.searchParams.append(key, item);
-            });
-            break;
-        case "delete":
-            url.searchParams.delete(key);
-            break;
-        case "get":
-            returnValue = url.searchParams.getAll(key);
-            break;
-        case "entries":
-            returnValue = Object.fromEntries(
-            Array.from(url.searchParams.entries())
-                .filter(([key, value]) => value !== undefined && value !== "undefined")
-            )
-            break;
-    }
-    window.history.pushState({}, "", url);
-    return returnValue;
-}
-
 const exhibits = {
     J1_1: {
         name: "テスト文",
@@ -276,7 +243,7 @@ const maps_locations = {
     F1_Gym_Entrance: {
         name: maps_locationNames.Gym,
     },
-    F1_Art: {
+    F1_F2_Art: {
         name: maps_locationNames.Art,
         offset: {
             y: .5,
@@ -384,6 +351,18 @@ const maps_locations = {
             name: maps_locationNames.Music_Laboratory,
         },
     },
+    BusStation_Base: {
+        name: "バス停",
+        description: '<img src="./medias/pages/0.png" />',
+        image: "./medias/pages/0.png",
+        onClick: () => {
+            window.location.href = "./?page=5";
+        },
+        offset: {
+            y: .1,
+        },
+        isAlwaysShow: true,
+    },
 
     F1_J1_1: exhibits.J1_1,
     F1_J1_2: exhibits.J1_2,
@@ -459,14 +438,6 @@ const maps_locations = {
     F3_H3_6: exhibits.H3_6,
     F3_H3_7: {
         name: "テスト文"
-    },
-
-    BusStation_Base: {
-        name: "バス停",
-        offset: {
-            y: .1,
-        },
-        isAlwaysShow: true,
     },
 };
 
@@ -699,6 +670,8 @@ function cameraPan({
     }
 }
 
+const maps_labels = {};
+
 function maps_frameObject({
     target: target,
     camera: camera = maps_camera,
@@ -706,7 +679,11 @@ function maps_frameObject({
     duration: duration = 1,
     isToCenter: isToCenter = true,
     zoom: zoom = Math.max(2.1, maps_camera.zoom),
+    offsetZ: offsetZ = -.15,
 }) {
+    if (maps_labels[target?.name]?.element) console.log(
+        getComputedStyle(maps_labels[target?.name]?.element).height.replace("px", "") * 1
+    );
     if (!target?.geometry) return;
 
     // バウンディングボックスの取得
@@ -735,7 +712,7 @@ function maps_frameObject({
         if (controls.enableRotate) {
             gsap.to(controls.target, {
                 x: center.x,
-                y: center.y - .15,
+                y: center.y + offsetZ,
                 z: center.z,
                 duration: duration,
                 ease: "power2.inOut",
@@ -764,7 +741,7 @@ function maps_addLabelTransition (label, transitionDuration = .5) {
         if (e.target === label) { // この要素自身のトランジションのみ対象
             setTimeout(() => {
                 label.classList.remove("addTransition");
-            }, transitionDuration * 1000);
+            }, transitionDuration * 1000 + 500);
         }
     };
     label.addEventListener("transitionend", onTransitionEnd, { once: true });
@@ -792,10 +769,18 @@ function maps_getFloor (name) {
     return matches.map(match => Number(match[1]));
 }
 
-exhibitsArea.addEventListener("click", e => {
-    const tile = e.target.closest(".tile");
-    if (!tile) return;
-    openTile(tile);
+d.addEventListener("click", e => {
+    if (exhibitsArea.contains(e.target)) {
+        if (!searchBarsEl.classList.contains("opened")) {
+            const tile = e.target.closest(".tile");
+            if (!tile) return;
+            openTile(tile);
+        }
+    }
+    if (!searchBarsEl.contains(e.target) && !exhibitsBottomBar.contains(e.target)) {
+        searchBarsEl.classList.remove("opened");
+        updateSort("");
+    }
 });
 
 function startObserve({ target, callback, once = true, threshold = 0 }) {
@@ -896,7 +881,7 @@ for (let i = 0; i < exhibitsLength; i += 1) {
             if (getExhibits(i)[1] === item) {
                 const targetObj = maps_modelParts[Object.keys(maps_locations)[index]];
                 maps_frameObject({
-                    target: targetObj
+                    target: targetObj,
                 });
                 const targetLabel = maps_labelsArea.querySelector(`.mapsLabel[exhibits="${Object.keys(maps_locations)[index]}"]`);
                 targetLabel.classList.add("opened");
@@ -951,6 +936,8 @@ for (let i = 0; i < exhibitsLength; i += 1) {
     tagsContent.addEventListener("scroll", scroll);
 }
 
+const getEscapeReg = (string) => string[0] ? string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : null;
+
 function getSortConditions () {
     let conditions = [];
     const checkedTags = exhibitsBottomBar.querySelectorAll(".tag.checkedBox:not([isButton])");
@@ -960,76 +947,235 @@ function getSortConditions () {
     return conditions;
 }
 
-function getIsSortConforming (element, conditions = getSortConditions()) {
-    let isConforming = true;
-    for (const condition of conditions) {
-        if (!element.getAttribute("tag") || !element.getAttribute("tag").split(",").includes(condition)) {
-            isConforming = false;
-            break;
+const existingSearchValue = queryParameter({
+    type: "get",
+    key: "search",
+}) || "";
+
+function toKatakana(input, {normalizeHalfwidth = true} = {}) {
+    let s = String(input);
+    if (normalizeHalfwidth) s = s.normalize('NFKC'); // 半角カナを全角にする（必要なら false に）
+    const H_START = 0x3041, H_END = 0x3096;
+    const OFFSET = 0x60; // 96
+
+    return Array.from(s).map(ch => {
+        const cp = ch.codePointAt(0);
+        if (cp >= H_START && cp <= H_END) {
+            return String.fromCodePoint(cp + OFFSET);
         }
-    };
-    return isConforming;
+        // そのほかはそのまま（長音記号や記号、漢字、英数字など）
+        return ch;
+    }).join('');
 }
 
-function updateSort () {
+function toHiragana(input, {normalizeHalfwidth = true} = {}) {
+    let s = String(input);
+    if (normalizeHalfwidth) s = s.normalize('NFKC'); // 半角カナを全角にする
+    const K_START = 0x30A1, K_END = 0x30F6;
+    const OFFSET = 0x60; // 96
+
+    return Array.from(s).map(ch => {
+        const cp = ch.codePointAt(0);
+        if (cp >= K_START && cp <= K_END) {
+        return String.fromCodePoint(cp - OFFSET);
+        }
+        return ch;
+    }).join('');
+}
+
+// 検索
+function getExhibitsSearch (exhibit, searchWord = getSearchValue()) {
+    let searchHits = [];
+    const exhibitItem = exhibit;
+    const targets = [
+        exhibitItem?.name,
+        exhibitItem?.description,
+        exhibitItem?.location?.name,
+    ];
+    exhibitItem?.tag?.forEach(tag => {
+        targets.push(tagOrder[tag].displayName);
+    });
+    let isHit = false;
+    searchHits = [];
+    const spliteds = [];
+    targets?.forEach((target, i) => {
+        const splited = target.split(
+            new RegExp(
+                `(${getEscapeReg(searchWord)}|${getEscapeReg(toHiragana(searchWord))}|${getEscapeReg(toKatakana(searchWord))})`
+            )
+        );
+        spliteds.push(splited);
+        if (
+            !searchWord ||
+            searchWord === "" ||
+            splited.length > 1
+        ) {
+            isHit = true;
+            searchHits.push([target, i]);
+        }
+    });
+    return {
+        isHit: isHit,
+        hits: searchHits,
+        spliteds: spliteds
+    };
+}
+
+const searchBarsEl = d.querySelector(".main.content .searchBars")
+const newSearchBarEl = d.createElement("input");
+
+function getIsSortConforming (exhibit, conditions = getSortConditions(), searchWord = getSearchValue()) {
+    let isConforming = true;
+    const searchHits = [];
+    const searchRes = getExhibitsSearch(exhibit, searchWord);
+    if (searchRes.isHit) {
+        searchHits.push(searchRes.hits);
+        for (const condition of conditions) {
+            if (
+                !exhibit?.tag?.includes(condition)
+            ) {
+                isConforming = false;
+                break;
+            }
+        };
+    } else {
+        isConforming = false;
+    }
+    return {
+        isConforming: isConforming,
+        searchHits: searchHits,
+        spliteds: searchRes.spliteds,
+    };
+}
+
+function updateButtonText (targetEl, newText) {
+    if (!targetEl) return;
+    const newTextArea = d.createElement("span");
+    if (targetEl.querySelector("span")?.textContent !== newText) {
+        const animDuration = 300;
+        targetEl.querySelectorAll("span").forEach(span => {
+            span.style.animation = "none";
+            span.offsetHeight;
+            span.style.animation = `showText ${animDuration}ms ease-in-out both reverse`;
+            setTimeout(() => {
+                span.remove();
+            }, animDuration * 2);
+        });
+        newTextArea.textContent = newText;
+        newTextArea.style.animation = `showText ${animDuration}ms ease-in-out both`;
+        newTextArea.style.animationDelay = `${animDuration}ms`;
+        newTextArea.style.position = "absolute";
+        newTextArea.style.whiteSpace = "nowrap";
+        targetEl.appendChild(newTextArea);
+        targetEl.style.transition = `width ${animDuration * 2}ms ease-in-out, height ${animDuration * 2}ms ease-in-out,`;
+        targetEl.style.position = "relative";
+        targetEl.style.display = "flex";
+        targetEl.style.justifyContent = "center";
+        targetEl.style.alignItems = "center";
+        setTimeout(() => {
+            targetEl.style.width  = `${newTextArea.offsetWidth + 20}px`;
+            targetEl.style.height = `${newTextArea.offsetHeight}px`;
+        });
+    }
+}
+
+function updateSort (searchWord = getSearchValue()) {
     const conditions = getSortConditions();
 
-    (() => {
-        const allTiles = exhibitsArea.querySelectorAll(".tile");
+    const allTiles = exhibitsArea.querySelectorAll(".tile");
 
-        function setTileVisible (element, isVisible) {
-            if (isVisible) {
-                element.classList.remove("hidden");
-                element.style.setProperty("--tileOpacity", 1);
-            } else {
-                element.classList.add("hidden");
-                element.classList.remove("opened");
-                element.style.setProperty("--tileOpacity", "var(--baseOpacity)");
-            }
+    function setTileVisible (element, isVisible) {
+        if (isVisible) {
+            element.classList.remove("hidden");
+            element.style.setProperty("--tileOpacity", 1);
+        } else {
+            element.classList.add("hidden");
+            element.classList.remove("opened");
+            element.style.setProperty("--tileOpacity", "var(--baseOpacity)");
         }
+    }
 
-        allTiles.forEach(element => {
-            if (conditions[0]) {
-                setTileVisible(element, false);
-            } else {
-                setTileVisible(element, true);
-            }
-            element.classList.remove("topTileStyle");
-            element.classList.remove("lowestTileStyle");
-        });
-
-        const activeAllTiles = [];
-
-        const targetElements = [];
-        exhibitsArea.querySelectorAll(":scope > div.tile").forEach(tileItem => {
-            // if (tileItem.getAttribute("tag").includes(conditions.join(","))) {
-            if (getIsSortConforming(tileItem, conditions)) {
-                targetElements.push(tileItem);
-            }
-        });
-        targetElements.forEach(element => {
+    allTiles.forEach(element => {
+        if (conditions[0] || searchWord) {
+            setTileVisible(element, false);
+        } else {
             setTileVisible(element, true);
-            activeAllTiles.push(element);
-        });
-
-        exhibitsArea.style.setProperty("--numOfTile", allTiles.length);
-        exhibitsArea.style.setProperty("--numOfVisibleTile", activeAllTiles.length);
-
-        conditions.forEach(condition => {
-            exhibitsArea.querySelectorAll(`.tags [tag_${condition}]`).forEach(element => {
-                element.style.opacity = 1;
-            });
-        });
-
-        // 角丸系
-
-        if (activeAllTiles[0]) {
-            activeAllTiles[0].classList.add("topTileStyle");
         }
-        if (activeAllTiles[activeAllTiles.length - 1]) {
-            activeAllTiles[activeAllTiles.length - 1].classList.add("lowestTileStyle");
+        element.classList.remove("topTileStyle");
+        element.classList.remove("lowestTileStyle");
+    });
+
+    const activeAllTiles = [];
+
+    const targetElements = [];
+    const targetExhibits = [];
+    const spliteds = [];
+    const searchHits = [];
+    exhibitsArea.querySelectorAll(":scope > div.tile").forEach(tileItem => {
+        const exhibit = exhibits[tileItem.getAttribute("exhibits")];
+        const conforming = getIsSortConforming(exhibit, conditions, searchWord);
+        if (conforming.isConforming) {
+            searchHits.push(conforming.searchHits);
+            targetElements.push(tileItem);
+            targetExhibits.push(exhibit);
+            spliteds.push(conforming.spliteds);
         }
+    });
+
+    targetElements.forEach(element => {
+        setTileVisible(element, true);
+        activeAllTiles.push(element);
+    });
+
+    exhibitsArea.style.setProperty("--numOfTile", allTiles.length);
+    exhibitsArea.style.setProperty("--numOfVisibleTile", activeAllTiles.length);
+
+    conditions.forEach(condition => {
+        exhibitsArea.querySelectorAll(`.tags [tag_${condition}]`).forEach(element => {
+            element.style.opacity = 1;
+        });
+    });
+
+    // 角丸系
+
+    if (activeAllTiles[0]) {
+        activeAllTiles[0].classList.add("topTileStyle");
+    }
+    if (activeAllTiles[activeAllTiles.length - 1]) {
+        activeAllTiles[activeAllTiles.length - 1].classList.add("lowestTileStyle");
+    }
+
+    (() => {
+        const sortDisplay = mainContent.querySelector(".sortDisplay");
+        sortDisplay.innerHTML = "";
+        [getSearchValue(), ...conditions].forEach((condition, i, arr) => {
+            const newDisplayEl = d.createElement("div");
+            newDisplayEl.className = "display";
+            newDisplayEl.textContent = tagOrder[condition] ? tagOrder[condition]?.displayName : (() => {
+                newDisplayEl.style.color = "black";
+                if (condition) {
+                    return `"${condition}" を含む`;
+                } else {
+                    return "";
+                }
+            })();
+            newDisplayEl.style.backgroundColor = tagOrder[condition]?.themeColor;
+            sortDisplay.appendChild(newDisplayEl);
+            
+            const newAndEl = d.createElement("div");
+            newAndEl.className = "and";
+            newAndEl.textContent = (arr.length >= 1) && (i !== arr.length - 1) && (newDisplayEl.textContent !== "") ? "かつ" : "";
+            sortDisplay.appendChild(newAndEl);
+
+        });
     })();
+
+    return {
+        elements: targetElements,
+        exhibits: targetExhibits,
+        searchHits: searchHits,
+        spliteds: spliteds
+    };
 }
 
 const bottomBar_contents = d.createElement("div");
@@ -1104,11 +1250,142 @@ let loadModel;
     exhibitsBottomBar.appendChild(bottomBar_contents);
 })();
 
+function scrollToTile(value, offsetY) {
+    const targetTile = value instanceof Element ? (
+        value
+    ) : (
+        exhibitsArea.querySelector(`.tile[exhibits="${value}"]`)
+    );
+
+    function scrollToAndThen(targetY, callback) {
+        const executionTime = Date.now();
+        const tolerance = 2; // 少し余裕を持たせる
+        const checkScroll = () => {
+            const currentY = window.scrollY;
+            const maxY = d.body.scrollHeight - window.innerHeight;
+            if (
+                Math.abs(currentY - Math.min(targetY, maxY)) <= tolerance ||
+                Date.now() - executionTime > 1000
+            ) {
+                callback();
+            } else {
+                requestAnimationFrame(checkScroll);
+            }
+        };
+
+        window.scrollTo({ top: targetY, behavior: "smooth" });
+        checkScroll();
+    }
+
+    if (!targetTile) return;
+    const existingTransition = targetTile.style.transition;
+    exhibitsArea.querySelectorAll(".tile").forEach(tileItem => {
+        tileItem.style.transition = "none";
+    });
+    const rect = targetTile.getBoundingClientRect();
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const targetY = rect.top + scrollTop - 120 + offsetY;
+    scrollToAndThen(targetY, () => {
+        exhibitsArea.querySelectorAll(".tile").forEach(tileItem => {
+            tileItem.style.transition = existingTransition;
+        });
+    });
+}
+
+const getSearchValue = () => searchBarsEl.classList.contains("opened") ? newSearchBarEl.value : "";
+
 (() => { // exhibitsBottomBar contents
     // listView
     const listView = d.createElement("div");
     listView.className = "tags listView";
     bottomBar_contents.appendChild(listView);
+
+    const newSearchBarDisplayEl = d.createElement("div");
+    newSearchBarDisplayEl.className = "searchBarDisplay";
+
+    const sagests = searchBarsEl.querySelector(".sagests");
+
+    newSearchBarEl.className = "searchBar";
+    newSearchBarEl.type = "text";
+    newSearchBarEl.value = existingSearchValue;
+    const getSearchWord = () => newSearchBarEl.value;
+    const getFmtedHTML = (str) => str.replaceAll(" ", "&nbsp;");
+    const getIsOpened = () => searchBarsEl.classList.contains("opened") ? true : false;
+    function searchInput () {
+        const searchWord = getSearchWord();
+        const sortResult = updateSort();
+        // console.log("sortResult", sortResult);
+        queryParameter({
+            type: "delete",
+            key: "search"
+        });
+        if (newSearchBarEl.value) {
+            queryParameter({
+                type: "append",
+                key: "search",
+                value: newSearchBarEl.value
+            });
+        }
+        sagests.innerHTML = "";
+        newSearchBarDisplayEl.innerHTML = "";
+        const isSagestVaild = searchWord && searchWord !== "" && searchWord.length !== 0;
+        const sagestResults = [];
+        sortResult.searchHits.forEach((hitItem, i) => {
+            if (isSagestVaild) {
+                const sagestSplit = sortResult.spliteds[i][hitItem?.[0]?.[0][1]];
+                // const sagestSplit = hitItem?.[0]?.[0]?.[0]?.split(
+                //     new RegExp(`(${getEscapeReg(searchWord)})`)
+                // );
+                const sagestTexts = [
+                    sagestSplit?.[0] || "",
+                    sagestSplit?.[1] || "",
+                    sagestSplit?.slice(2).join("") || ""
+                ];
+                sagestResults.push(sagestTexts);
+                const newSet = d.createElement("div");
+                newSet.addEventListener("click", () => {
+                    const targetEl = sortResult.elements[i];
+                    scrollToTile(targetEl, -100);
+                });
+
+                const newSagest = d.createElement("div");
+                newSagest.innerHTML = `<span>${getFmtedHTML(sagestTexts[0])}</span>${getFmtedHTML(sagestTexts[1])}<span>${getFmtedHTML(sagestTexts[2])}</span>`;
+                
+                const newExhibitName = d.createElement("div");
+                newExhibitName.textContent = sortResult.exhibits[i].name;
+                newExhibitName.className = "exhibitName";
+                
+                sagests.appendChild(newSet);
+                newSet.appendChild(newSagest);
+                newSet.appendChild(newExhibitName);
+            }
+        });
+        if (isSagestVaild) {
+            if (sagestResults.length !== 0) {
+                newSearchBarDisplayEl.innerHTML = `<span>${
+                    isSagestVaild ? getFmtedHTML(sagestResults?.[0]?.[0]) : ""
+                }</span>${
+                    getFmtedHTML(searchWord)
+                }${
+                    isSagestVaild ? getFmtedHTML(sagestResults?.[0]?.[2]) : ""
+                }`;
+            }
+            mainContent.style.setProperty("--sagestsHeight", getIsOpened() ? sagests.clientHeight + "px" : 0);
+            newSearchBarEl.style.setProperty("--spanWidth", (newSearchBarDisplayEl.querySelector("span")?.scrollWidth || 0) + "px");
+        } else {
+            newSearchBarDisplayEl.innerHTML = "検索できます";
+            newSearchBarEl.style.setProperty("--spanWidth", 0);
+        }
+    }
+    searchInput();
+    newSearchBarEl.addEventListener("input", searchInput);
+    searchBarsEl.querySelector("svg").addEventListener("click", () => {
+        searchBarsEl.classList.toggle("opened");
+        updateSort(getSearchValue());
+        searchInput();
+    });
+    searchBarsEl.appendChild(newSearchBarEl);
+    searchBarsEl.appendChild(newSearchBarDisplayEl);
 
     Object.keys(tagOrder).forEach((tag, tagIndex) => {
         const newTag = d.createElement("span");
@@ -1197,37 +1474,6 @@ let loadModel;
         newTag.addEventListener("click", tagClicked);
     });
     updateSort();
-
-    function updateButtonText (targetEl, newText) {
-        if (!targetEl) return;
-        const newTextArea = d.createElement("span");
-        if (targetEl.querySelector("span")?.textContent !== newText) {
-            const animDuration = 300;
-            targetEl.querySelectorAll("span").forEach(span => {
-                span.style.animation = "none";
-                span.offsetHeight;
-                span.style.animation = `showText ${animDuration}ms ease-in-out both reverse`;
-                setTimeout(() => {
-                    span.remove();
-                }, animDuration * 2);
-            });
-            newTextArea.textContent = newText;
-            newTextArea.style.animation = `showText ${animDuration}ms ease-in-out both`;
-            newTextArea.style.animationDelay = `${animDuration}ms`;
-            newTextArea.style.position = "absolute";
-            newTextArea.style.whiteSpace = "nowrap";
-            targetEl.appendChild(newTextArea);
-            targetEl.style.transition = `width ${animDuration * 2}ms ease-in-out, height ${animDuration * 2}ms ease-in-out`;
-            targetEl.style.position = "relative";
-            targetEl.style.display = "flex";
-            targetEl.style.justifyContent = "center";
-            targetEl.style.alignItems = "center";
-            setTimeout(() => {
-                targetEl.style.width  = `${newTextArea.offsetWidth + 20}px`;
-                targetEl.style.height = `${newTextArea.offsetHeight}px`;
-            });
-        }
-    }
 
     (() => { // mapsView
         bottomBar_contents.appendChild(mapsView);
@@ -1419,7 +1665,7 @@ let loadModel;
                                     let geom = mesh.geometry.clone();
 
                                     // 1. 重複頂点の削除
-                                    const tolerance = 0.025; // 適宜調整
+                                    const tolerance = 0.015; // 適宜調整
                                     geom = BufferGeometryUtils.mergeVertices(geom, tolerance);
 
                                     // 2. ワールド変換を適用
@@ -1546,42 +1792,6 @@ let loadModel;
                         ) : ""
                     );
 
-                    function scrollToTile(targetTile) {
-                        function scrollToAndThen(targetY, callback) {
-                            const executionTime = Date.now();
-                            const tolerance = 2; // 少し余裕を持たせる
-                            const checkScroll = () => {
-                                const currentY = window.scrollY;
-                                const maxY = d.body.scrollHeight - window.innerHeight;
-                                if (
-                                    Math.abs(currentY - Math.min(targetY, maxY)) <= tolerance ||
-                                    Date.now() - executionTime > 1000
-                                ) {
-                                    callback();
-                                } else {
-                                    requestAnimationFrame(checkScroll);
-                                }
-                            };
-
-                            window.scrollTo({ top: targetY, behavior: "smooth" });
-                            checkScroll();
-                        }
-
-                        if (!targetTile) return;
-                        const existingTransition = targetTile.style.transition;
-                        exhibitsArea.querySelectorAll(".tile").forEach(tileItem => {
-                            tileItem.style.transition = "none";
-                        });
-                        const rect = targetTile.getBoundingClientRect();
-                        const scrollTop = window.scrollY || document.documentElement.scrollTop;
-                        const targetY = rect.top + scrollTop - 120;
-                        scrollToAndThen(targetY, () => {
-                            exhibitsArea.querySelectorAll(".tile").forEach(tileItem => {
-                                tileItem.style.transition = existingTransition;
-                            });
-                        });
-                    }
-
                     mapsView.appendChild(maps_labelRenderer.domElement);
 
                     function setTagAttributes (tags, element) {
@@ -1593,7 +1803,6 @@ let loadModel;
                         element.setAttribute("tag", tagAttributes.join(","));
                     }
 
-                    const labels = {};
                     Object.keys(maps_modelParts).forEach((partName) => {
                         const part = maps_modelParts[partName];                        
 
@@ -1625,9 +1834,9 @@ let loadModel;
 
                             if (!maps_locations[partName]?.name) maps_locations[partName].name = maps_pointIcon;
 
-                            const isHTMLTag = maps_locations[partName]?.name?.includes("<");
+                            const getIsHTMLTag = (value) => value?.includes("<") ? true : false;
 
-                            const titleText = isHTMLTag ? maps_locations[partName].name : truncateText(maps_locations[partName].name, 10);
+                            const titleText = getIsHTMLTag(maps_locations[partName]?.name) ? maps_locations[partName].name : truncateText(maps_locations[partName].name, 10);
                             const descriptionText = maps_locations[partName]?.description;
                             const locationText = maps_locations[partName]?.location?.name;
                             const detailTile = exhibitsArea.querySelector(`.tile[exhibits=${getFmtedObjName(partName)}]`);
@@ -1647,23 +1856,28 @@ let loadModel;
 
                             if (locationText) {
                                 const location = d.createElement("span");
-                                location.textContent = locationText;
+                                location.innerHTML = locationText;
                                 location.className = "location";
                                 informations.appendChild(location);
                             }
                             
                             if (descriptionText) {
                                 const detail = d.createElement("div");
-                                detail.textContent = truncateText(descriptionText, 20);
+                                // detail.textContent = truncateText(descriptionText, 20);
+                                detail.innerHTML = descriptionText;
                                 detail.className = "detail button";
-                                if (!!detailTile) {
+                                if (detailTile || maps_locations[partName]?.onClick) {
                                     detail.classList.add("pressable");
                                     detail.addEventListener("click", e => {
                                         e.preventDefault();
                                         label.classList.remove("opened");
-                                        barHeightUpdate(false);
-                                        openTile(detailTile, true);
-                                        scrollToTile(detailTile);
+                                        if (maps_locations[partName]?.onClick) {
+                                            maps_locations[partName].onClick();
+                                        } else if (detailTile) {
+                                            barHeightUpdate(false);
+                                            openTile(detailTile, true);
+                                            scrollToTile(detailTile);
+                                        }
                                     });
                                 }
                                 informations.appendChild(detail);
@@ -1719,7 +1933,7 @@ let loadModel;
                         labelObject.position.copy(vector);
                         part.add(labelObject);
 
-                        labels[partName] = { object: labelObject, element: label, part: part };
+                        maps_labels[partName] = { object: labelObject, element: label, part: part };
                     });
 
                     (() => {
@@ -1738,7 +1952,7 @@ let loadModel;
                             
                             const candidateLabels = [];
 
-                            Object.values(labels).forEach(labelObj => {
+                            Object.values(maps_labels).forEach(labelObj => {
                                 const labelElement = labelObj.element;
                                 if (
                                     isOverlap(labelElement, touchStart[0], touchStart[1]) &&
@@ -1760,7 +1974,7 @@ let loadModel;
                                 Math.abs(x - touchStart[0]) < 5 &&
                                 Math.abs(y - touchStart[1]) < 5
                             ) {
-                                Object.values(labels).forEach(labelObj => {
+                                Object.values(maps_labels).forEach(labelObj => {
                                     const labelElement = labelObj.element;
                                     if (
                                         labelElement.classList.contains("opened") &&
@@ -1804,14 +2018,14 @@ let loadModel;
                         mapsView.style.setProperty("--camPosZ", camPos.z);
                         mapsView.style.setProperty("--camZoom", maps_camera.zoom);
 
-                        Object.values(labels).forEach(({ element, part }, index) => {
+                        Object.values(maps_labels).forEach(({ element, part }, index) => {
                             // const objPos = part.userData?.originalTransform?.position.clone() || part.getWorldPosition(new THREE.Vector3());
                             // const camDistance = camPos.distanceTo(objPos);
 
                             const isAlwaysShow = maps_locations[part.name]?.isAlwaysShow || false;
 
                             if ((gsap.getProperty(Array.isArray(part.material) ? part.material[0] : part.material, "opacity") === 1) || isAlwaysShow) {
-                                if (getIsSortConforming(element, getSortConditions())) {
+                                if (getIsSortConforming(maps_locations[part.name], getSortConditions(), getSearchValue()).isConforming) {
                                     if (element.classList.contains("invalid")) element.classList.remove("invalid");
                                     element.style.setProperty("--labelOpacity", 1);
                                 } else {
@@ -1824,7 +2038,7 @@ let loadModel;
                             }
 
                             element.setAttribute("isPressable", (
-                                !element.classList.contains("invalid") && element.querySelector(".informations")?.textContent.length !== 0
+                                !element.classList.contains("invalid") && element.querySelector(".informations")?.innerHTML.length !== 0
                             ));
 
                             if (element.getAttribute("isPressable") === "true" || element.style.opacity !== 0) {
@@ -1853,21 +2067,24 @@ let loadModel;
                                     }
                                 }
 
-                                if (element?.getBoundingClientRect().width < title?.getBoundingClientRect().width) {
-                                    element.classList.add("over");
-                                } else {
-                                    element.classList.remove("over");
-                                }
-
                                 const labelWidthProperty = "--width";
                                 const labelHeightProperty = "--height";
 
-                                if (getComputedStyle(element).getPropertyValue(labelWidthProperty) !== labelWidth + "px") {
-                                    element.style.setProperty(labelWidthProperty,  labelWidth + "px");
+                                function setLabelScale () {
+                                    if (getComputedStyle(element).getPropertyValue(labelWidthProperty) !== labelWidth + "px") {
+                                        element.style.setProperty(labelWidthProperty,  labelWidth + "px");
+                                    }
+                                    if (getComputedStyle(element).getPropertyValue(labelHeightProperty) !== labelHeight + "px") {
+                                        element.style.setProperty(labelHeightProperty, labelHeight + "px");
+                                    }
+                                    
+                                    if (element?.getBoundingClientRect().width < title?.getBoundingClientRect().width) {
+                                        element.classList.add("over");
+                                    } else {
+                                        element.classList.remove("over");
+                                    }
                                 }
-                                if (getComputedStyle(element).getPropertyValue(labelHeightProperty) !== labelHeight + "px") {
-                                    element.style.setProperty(labelHeightProperty, labelHeight + "px");
-                                }
+                                setLabelScale();
 
                                 const match = element.style.transform.match(/translate\((-?\d+\.?\d*)px,\s*(-?\d+\.?\d*)px\)/);
                                 const labelXPx = parseFloat(match[1]);
@@ -2442,6 +2659,17 @@ let loadModel;
         mapsView.appendChild(maps_buttons_right);
         mapsView.appendChild(maps_buttons_top);
     })();
+
+    maps_renderer.domElement.addEventListener('webglcontextlost', e => {
+        console.warn('Context Lost');
+        e.preventDefault();
+    });
+
+    maps_renderer.domElement.addEventListener('webglcontextrestored', () => {
+        console.info('Context Restored');
+        initScene(); // シーンを再構築
+    });
+
 })();
 
 (() => {
@@ -2495,7 +2723,7 @@ let loadModel;
     let lastTouchendTime = Date.now();
 
     function barTransitionUpdate () {
-        exhibitsBottomBar.style.transition = `${sortListTransition === "" || sortListTransition === "none" ? "" : `${sortListTransition}, `}height .4s ease-out, width .4s ease-out`;
+        exhibitsBottomBar.style.transition = `${sortListTransition === "" || sortListTransition === "none" ? "" : `${sortListTransition}, `}height .4s ease-out, width .4s ease-out, padding .5s ease-in-out`;
     }
     barTransitionUpdate();
 
