@@ -38,7 +38,7 @@ const exhibits = {
     },
     J2_1: {
         name: "お化け屋敷",
-        description: "怖いお化けが出る屋敷怖いお化けが出る屋敷怖いお化けが出る屋敷怖いお化けが出る屋敷怖いお化けが出る屋敷怖いお化けが出る屋敷怖いお化けが出る屋敷",
+        description: "怖いお化けってなんでしょう? 意味合いを辞書的に考えるようなあたまのかたいひととは違って､私はちゃんとClaudeにききます",
         tag: [
             "byClass",
             "J2",
@@ -774,10 +774,10 @@ d.addEventListener("click", e => {
         const tile = e.target.closest(".tile");
         if (tile) openTile(tile);
     }
-    // if (!searchBarsEl.contains(e.target) && !exhibitsBottomBar.contains(e.target)) {
-    //     searchBarsEl.classList.remove("opened");
-    //     updateSort("");
-    // }
+    if (!searchBarsEl.contains(e.target) && !exhibitsBottomBar.contains(e.target)) {
+        searchAreaEl.classList.remove("opened");
+        updateSort("");
+    }
 });
 
 function startObserve({ target, callback, once = true, threshold = 0 }) {
@@ -1018,7 +1018,9 @@ function getExhibitsSearch (exhibit, searchWord = getSearchValue()) {
     };
 }
 
+const searchAreaEl = d.querySelector(".main.content .searchArea")
 const searchBarsEl = d.querySelector(".main.content .searchBars")
+const searchInputsEl = d.querySelector(".main.content .searchInputs")
 const newSearchBarEl = d.createElement("input");
 
 function getIsSortConforming (exhibit, conditions = getSortConditions(), searchWord = getSearchValue()) {
@@ -1290,7 +1292,7 @@ function scrollToTile(value, offsetY = 0) {
     requestAnimationFrame(() => {
         const rect = targetTile.getBoundingClientRect();
         const scrollTop = window.scrollY || document.documentElement.scrollTop;
-        const targetY = rect.top + scrollTop - 120 + offsetY;
+        const targetY = rect.top + scrollTop - 170 + offsetY;
 
         allTiles.forEach((tileItem, i) => {
             if (tileOpenDatas[i]) tileItem.classList.add("opened");
@@ -1306,8 +1308,17 @@ function scrollToTile(value, offsetY = 0) {
         });
     });
 }
-
-const getSearchValue = () => searchBarsEl.classList.contains("opened") ? newSearchBarEl.value : "";
+const truncateText = ({
+    text: text,
+    length: length = 10,
+    left: left = false,
+    str: str = ".."
+}) => (
+    typeof text === "string" ? (
+        text.length > length ? text.slice(left ? length : 0, left ? 0 : length) + str : text
+    ) : ""
+);
+const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSearchBarEl.value : "";
 
 (() => { // exhibitsBottomBar contents
     // listView
@@ -1318,7 +1329,7 @@ const getSearchValue = () => searchBarsEl.classList.contains("opened") ? newSear
     const newSearchBarDisplayEl = d.createElement("div");
     newSearchBarDisplayEl.className = "searchBarDisplay";
 
-    const sagests = searchBarsEl.querySelector(".sagests");
+    const sagests = searchAreaEl.querySelector(".sagests");
 
     newSearchBarEl.className = "searchBar";
     newSearchBarEl.type = "text";
@@ -1326,31 +1337,45 @@ const getSearchValue = () => searchBarsEl.classList.contains("opened") ? newSear
 
     const getSearchWord = () => newSearchBarEl.value;
     const getFmtedHTML = (str) => str.replaceAll(" ", "&nbsp;");
-    const getIsOpened = () => searchBarsEl.classList.contains("opened") ? true : false;
-    const getIsFocus = () => searchBarsEl.classList.contains("focus") ? true : false;
+    const getIsOpened = () => searchAreaEl.classList.contains("opened") ? true : false;
+    const getIsFocus = () =>  searchAreaEl.classList.contains("focus") ? true : false;
+    const getScrollWidth = (el) => el?.scrollWidth || 0;
 
-    // sagests.addEventListener("click", e => {
-    //     console.log(
-    //         Array.from(sagests.children).indexOf(e.target.closest(".main.content .sagests > div")),
-    //     );
-    //     // const targetEl = sortResult.elements[i];
-    //     // scrollToTile(targetEl, -100);
-    // });
+    function setBarShift (custom) {
+        const spans = newSearchBarDisplayEl.querySelectorAll(":scope > span");
+        const barSelectionIndex = newSearchBarEl.selectionEnd - spans[1]?.textContent?.length || 0;
+        const value = custom || 
+        (getScrollWidth(spans[0]) + getScrollWidth(spans[1])) * -1 + ((
+            Math.min(window.innerWidth, 700)
+        ) * .5) + (
+            spans[1] ? (Math.abs(barSelectionIndex) / spans[1].textContent.length) * spans[1].scrollWidth : 0
+        );
+        searchBarsEl.style.setProperty("--barShift", value + "px");
+    }
 
+    let lastUrlUpdateAt;
     function searchInput () {
         const searchWord = getSearchWord();
         const sortResult = updateSort();
         // console.log("sortResult", sortResult);
-        queryParameter({
-            type: "delete",
-            key: "search"
-        });
-        if (newSearchBarEl.value) {
+        if (
+            newSearchBarEl.value && (Date.now() - lastUrlUpdateAt > 500 || !lastUrlUpdateAt) && (
+                queryParameter({
+                    type: "get",
+                    key: "search",
+                }) !== newSearchBarEl.value
+            )
+        ) {
+            queryParameter({
+                type: "delete",
+                key: "search"
+            });
             queryParameter({
                 type: "append",
                 key: "search",
                 value: newSearchBarEl.value
             });
+            lastUrlUpdateAt = Date.now();
         }
         sagests.innerHTML = "";
         const isSagestVaild = searchWord && searchWord !== "" && searchWord.length !== 0;
@@ -1369,10 +1394,15 @@ const getSearchValue = () => searchBarsEl.classList.contains("opened") ? newSear
                 ];
                 sagestResults.push(sagestTexts);
                 const newSet = d.createElement("div");
-                newSet.addEventListener("click", () => {
-                    const targetEl = sortResult.elements[i];
-                    // openTile(targetEl, true);
-                    scrollToTile(targetEl, sagestsHeight * -1 - 50);
+                newSet.addEventListener("click", e => {
+                    if (
+                        e.target === newSagest ||
+                        e.target === newExhibitName
+                    ) {
+                        searchBarsEl.classList.remove("opened");
+                        const targetEl = sortResult.elements[i];
+                        scrollToTile(targetEl);
+                    }
                 });
 
                 const newSagest = d.createElement("div");
@@ -1389,6 +1419,8 @@ const getSearchValue = () => searchBarsEl.classList.contains("opened") ? newSear
         });
         sagestsHeight = sagests.clientHeight;
         mainContent.style.setProperty("--sagestsHeight", getIsOpened() && getIsFocus() ? sagestsHeight + "px" : 0);
+        searchBarsEl.style.setProperty("--barShift", "0px");
+        searchBarsEl.style.setProperty("--span0Width", "0px");
         if (isSagestVaild) {
             newSearchBarDisplayEl.innerHTML = "";
             if (searchWord && sagestResults.length !== 0 && getIsOpened()) {
@@ -1396,34 +1428,59 @@ const getSearchValue = () => searchBarsEl.classList.contains("opened") ? newSear
                     getFmtedHTML(sagestResults?.[0]?.[0])
                 }</span>${
                     getFmtedHTML(searchWord)
-                }${
+                }<span>${
                     getFmtedHTML(sagestResults?.[0]?.[2])
-                }`;
+                }</span>`;
             }
-            newSearchBarEl.style.setProperty("--spanWidth", (newSearchBarDisplayEl.querySelector("span")?.scrollWidth || 0) + "px");
+            const spans = newSearchBarDisplayEl.querySelectorAll(":scope > span");
+            searchBarsEl.style.setProperty("--span0Width", getScrollWidth(spans[0]) + "px");
+            searchAreaEl.style.setProperty("--searchBarDisplayWidth", getScrollWidth(newSearchBarDisplayEl) + "px");
+            
+            if (getScrollWidth(spans[0]) + getScrollWidth(spans[1]) > searchBarsEl.clientWidth * .5) {
+                // setBarShift();
+                // console.log (spans[1].textContent.length, newSearchBarEl.selectionEnd)
+                // if (spans[1].textContent.length !== newSearchBarEl.selectionEnd) {
+                //     searchBarsEl.scrollLeft = searchBarsEl.scrollWidth - searchBarsEl.clientWidth * 2;
+                // }
+                
+                // searchBarsEl.style.setProperty("--barShift", (
+                //     searchBarsEl.clientWidth * .5
+                // ) * -1 + "px");
+            }
         } else {
             newSearchBarDisplayEl.innerHTML = "検索できます";
-            newSearchBarEl.style.setProperty("--spanWidth", 0);
         }
+        newSearchBarEl.focus();
     }
 
     newSearchBarEl.addEventListener("focus", () => {
-        searchBarsEl.classList.add("focus");
+        searchAreaEl.classList.add("focus");
         searchInput();
     });
-    // newSearchBarEl.addEventListener("blur", () => {
-    //     searchBarsEl.classList.remove("focus");
-    // });
+    function searchBarScroll () {
+        newSearchBarDisplayEl.style.setProperty("--barScrollPx", newSearchBarEl.scrollLeft + "px");
+        searchBarsEl.style.setProperty("--scrollLeft", searchBarsEl.scrollLeft + "px");
+    }
+    searchBarScroll();
+    newSearchBarEl.addEventListener("scroll", searchBarScroll);
 
     searchInput();
-    newSearchBarEl.addEventListener("input", searchInput);
+    newSearchBarEl.addEventListener("input", () => {
+        searchInput();
+    });
+    ["keydown", "keyup", "click", "select"].forEach(eventType => {
+        newSearchBarEl.addEventListener(eventType, () => {
+            searchInput();
+        });
+    });
+
     searchBarsEl.querySelector("svg").addEventListener("click", () => {
-        searchBarsEl.classList.toggle("opened");
+        searchAreaEl.classList.toggle("opened");
         updateSort(getSearchValue());
         searchInput();
     });
-    searchBarsEl.appendChild(newSearchBarEl);
-    searchBarsEl.appendChild(newSearchBarDisplayEl);
+    searchInputsEl.appendChild(newSearchBarEl);
+    searchInputsEl.appendChild(newSearchBarDisplayEl);
 
     Object.keys(tagOrder).forEach((tag, tagIndex) => {
         const newTag = d.createElement("span");
@@ -1824,12 +1881,6 @@ const getSearchValue = () => searchBarsEl.classList.contains("opened") ? newSear
                         }
                     });
 
-                    const truncateText = (text, length = 10) => (
-                        typeof text === "string" ? (
-                            text.length > length ? text.slice(0, length) + ".." : text
-                        ) : ""
-                    );
-
                     mapsView.appendChild(maps_labelRenderer.domElement);
 
                     function setTagAttributes (tags, element) {
@@ -1874,7 +1925,7 @@ const getSearchValue = () => searchBarsEl.classList.contains("opened") ? newSear
 
                             const getIsHTMLTag = (value) => value?.includes("<") ? true : false;
 
-                            const titleText = getIsHTMLTag(maps_locations[partName]?.name) ? maps_locations[partName].name : truncateText(maps_locations[partName].name, 10);
+                            const titleText = getIsHTMLTag(maps_locations[partName]?.name) ? maps_locations[partName].name : truncateText({text: maps_locations[partName].name, length: 10});
                             const descriptionText = maps_locations[partName]?.description;
                             const locationText = maps_locations[partName]?.location?.name;
                             const detailTile = exhibitsArea.querySelector(`.tile[exhibits=${getFmtedObjName(partName)}]`);
@@ -1901,7 +1952,6 @@ const getSearchValue = () => searchBarsEl.classList.contains("opened") ? newSear
                             
                             if (descriptionText) {
                                 const detail = d.createElement("div");
-                                // detail.textContent = truncateText(descriptionText, 20);
                                 detail.innerHTML = descriptionText;
                                 detail.className = "detail button";
                                 if (detailTile || maps_locations[partName]?.onClick) {
