@@ -1706,57 +1706,86 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                             currentLocationPoint,
                             new THREE.MeshStandardMaterial({ color: "red" })
                         );
+                        
+                        const mapping = [
+                            [[ 0,  0 ], [35.860550, 139.269142]],
 
-                        const baseLocation = [ // 0, 0, 0に対応する場所
-                            35.860550,
-                            139.269142
+                            [[ 1,  0 ], [35.860467, 139.269696]],
+                            [[-1,  0],  [35.860490, 139.268412]],
+
+                            // [[ 2,  0],  [35.860509, 139.270263]],
+                            // [[-2,  0],  [35.860594, 139.267906]],
+
+                            [[ 0,  1],  [35.860096, 139.269190]],
+                            [[ 0, -1],  [35.860991, 139.269053]],
+                            // [[ 0, -2],  [35.861763, 139.268991]],
+                            
+                            [[ 1,  1],  [35.860089, 139.269702]],
+                            [[ 1, -1],  [35.860990, 139.269652]],
+                            [[-1, -1],  [35.861308, 139.268184]],
+                            [[-1,  1],  [35.860063, 139.268546]],
                         ];
+
+                        // 変換関数
+                        function latlonToXYZ(lat, lon) {
+                            let weightedSumX = 0;
+                            let weightedSumY = 0;
+                            let totalWeight = 0;
+                            
+                            // pは重みの指数。大きいほど近くの点の影響が強くなる。2が一般的。
+                            const p = 2; 
+
+                            for (const entry of mapping) {
+                                const [localX, localY] = entry[0];
+                                const [mapLat, mapLon] = entry[1];
+
+                                // 緯度と経度の差を計算
+                                const diffLat = lat - mapLat;
+                                const diffLon = lon - mapLon;
+
+                                // 2点間の距離の2乗を計算（平方根の計算は重いため省略）
+                                const distSq = diffLat * diffLat + diffLon * diffLon;
+
+                                // 距離がゼロ（完全に一致）の場合、その点の座標を即座に返す
+                                if (distSq === 0) {
+                                    return [localX, localY];
+                                }
+
+                                // 距離に基づいた重みを計算 (weight = 1 / distance^p)
+                                const weight = 1 / Math.pow(distSq, p / 2);
+
+                                // 重み付きの合計を計算
+                                weightedSumX += localX * weight;
+                                weightedSumY += localY * weight;
+                                totalWeight += weight;
+                            }
+                            
+                            // すべての重みがゼロでなければ、重み付き平均を計算して返す
+                            if (totalWeight === 0) {
+                                // 全ての点が同じ場所にあるなど、特殊なケース
+                                return [0, 0]; 
+                            }
+
+                            const estimatedX = weightedSumX / totalWeight;
+                            const estimatedY = weightedSumY / totalWeight;
+
+                            return [estimatedX, estimatedY];
+                        }
 
                         const currentLocation = [
-                            35.860382, 139.269277
+                            35.860186, 139.268867
                         ];
 
-                        
-                        
-                        function latlonToXYZ(baseLat, baseLon){
-                            const lat = baseLat - baseLocation[0];
-                            const lon = baseLon - baseLocation[1];
-                            const M = [
-                                [866.69667299, 1236.85206018],   // row for x
-                                [0.0, 0.0],                      // row for y
-                                [-2161.60126554, 20.85725703],   // row for z
-                            ];
-                            const x = M[0][0]*lat + M[0][1]*lon;
-                            const y = M[1][0]*lat + M[1][1]*lon;
-                            const z = M[2][0]*lat + M[2][1]*lon;
-                            return { x, y, z };
-                        }
                         const pos = latlonToXYZ(currentLocation[0], currentLocation[1]);
-                        cube.position.set(
-                            pos.x,
-                            1,
-                            pos.z,
-                        );
                         console.log(pos);
 
+                        cube.position.set(
+                            pos[0],
+                            1,
+                            pos[1],
+                        );
+
                         scene.add(cube);
-                        /* 
-                         0, 0,  0 : 35.860550, 139.269142
-                         1, 0,  0 : 35.860467, 139.269696
-                        -1, 0,  0 : 35.860490, 139.268412
-
-                         0, 0,  1 : 35.860096, 139.269190
-                         0, 0, -1 : 35.860991, 139.269053
-
-                         ___
-
-                         0, 0,  0 :  0,         0
-                         1, 0,  0 : -0.000083,  0.000554
-                        -1, 0,  0 : -0.00006,  -0.00073
-
-                         0, 0,  1 : -0.000454,  0.000048
-                         0, 0, -1 :  0.000441, -0.000641
-                        */
                     })();
 
                     // モデルが読み込まれたら OrbitControls の注視点をモデル中心に設定
