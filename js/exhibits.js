@@ -1353,30 +1353,52 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
         searchBarsEl.style.setProperty("--barShift", value + "px");
     }
 
-    let lastUrlUpdateAt;
+    function searchBarScroll () {
+        // console.log(
+        //     newSearchBarEl.scrollLeft + "\n",
+        //     newSearchBarEl.getBoundingClientRect().right -
+        //     newSearchBarDisplayEl.getBoundingClientRect().right
+        // );
+        // newSearchBarEl.scrollWidth - newSearchBarEl.clientWidth
+
+        const offsetPx = newSearchBarEl.scrollLeft;
+        console.log("offsetPx : ", offsetPx);
+        newSearchBarDisplayEl.style.setProperty("--barScrollPx", (
+            offsetPx * -1
+        ) + "px");
+
+        searchBarsEl.style.setProperty("--scrollLeft", searchBarsEl.scrollLeft + "px");
+    }
+
+    let queryParamTimeout;
     function searchInput () {
         const searchWord = getSearchWord();
         const sortResult = updateSort();
-        // console.log("sortResult", sortResult);
-        if (
-            newSearchBarEl.value && (Date.now() - lastUrlUpdateAt > 500 || !lastUrlUpdateAt) && (
-                queryParameter({
-                    type: "get",
-                    key: "search",
-                }) !== newSearchBarEl.value
-            )
-        ) {
-            queryParameter({
-                type: "delete",
-                key: "search"
-            });
-            queryParameter({
-                type: "append",
-                key: "search",
-                value: newSearchBarEl.value
-            });
-            lastUrlUpdateAt = Date.now();
+        
+        if (queryParamTimeout) {
+            clearTimeout(queryParamTimeout);
         }
+        queryParamTimeout = setTimeout(() => {
+            function deleteParam () {
+                queryParameter({
+                    type: "delete",
+                    key: "search"
+                });
+            }
+            if (
+                newSearchBarEl.value === ""
+            ) {
+                deleteParam();
+            } else {
+                deleteParam();
+                queryParameter({
+                    type: "append",
+                    key: "search",
+                    value: newSearchBarEl.value
+                });
+            }
+        }, 150);
+
         sagests.innerHTML = "";
         const isSagestVaild = searchWord && searchWord !== "" && searchWord.length !== 0;
         const sagestResults = [];
@@ -1406,7 +1428,17 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                 });
 
                 const newSagest = d.createElement("div");
-                newSagest.innerHTML = `<span>${getFmtedHTML(sagestTexts[0])}</span>${getFmtedHTML(sagestTexts[1])}<span>${getFmtedHTML(sagestTexts[2])}</span>`;
+                newSagest.innerHTML = `<span>${
+                    truncateText({
+                        text: getFmtedHTML(sagestTexts[0]),
+                        length: 15,
+                        left: true,
+                    })
+                }</span>${
+                    getFmtedHTML(sagestTexts[1])
+                }<span>${
+                    getFmtedHTML(sagestTexts[2])
+                }</span>`;
 
                 const newExhibitName = d.createElement("div");
                 newExhibitName.textContent = sortResult.exhibits[i].name;
@@ -1435,21 +1467,15 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
             const spans = newSearchBarDisplayEl.querySelectorAll(":scope > span");
             searchBarsEl.style.setProperty("--span0Width", getScrollWidth(spans[0]) + "px");
             searchAreaEl.style.setProperty("--searchBarDisplayWidth", getScrollWidth(newSearchBarDisplayEl) + "px");
-            
-            if (getScrollWidth(spans[0]) + getScrollWidth(spans[1]) > searchBarsEl.clientWidth * .5) {
-                // setBarShift();
-                // console.log (spans[1].textContent.length, newSearchBarEl.selectionEnd)
-                // if (spans[1].textContent.length !== newSearchBarEl.selectionEnd) {
-                //     searchBarsEl.scrollLeft = searchBarsEl.scrollWidth - searchBarsEl.clientWidth * 2;
-                // }
-                
-                // searchBarsEl.style.setProperty("--barShift", (
-                //     searchBarsEl.clientWidth * .5
-                // ) * -1 + "px");
-            }
         } else {
             newSearchBarDisplayEl.innerHTML = "検索できます";
         }
+        searchBarScroll();
+        console.log(
+            "clog\n",
+            newSearchBarEl.scrollLeft,
+            newSearchBarEl.scrollWidth - newSearchBarEl.clientWidth
+        );
         newSearchBarEl.focus();
     }
 
@@ -1457,11 +1483,6 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
         searchAreaEl.classList.add("focus");
         searchInput();
     });
-    function searchBarScroll () {
-        newSearchBarDisplayEl.style.setProperty("--barScrollPx", newSearchBarEl.scrollLeft + "px");
-        searchBarsEl.style.setProperty("--scrollLeft", searchBarsEl.scrollLeft + "px");
-    }
-    searchBarScroll();
     newSearchBarEl.addEventListener("scroll", searchBarScroll);
 
     searchInput();
@@ -1470,7 +1491,7 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
     });
     ["keydown", "keyup", "click", "select"].forEach(eventType => {
         newSearchBarEl.addEventListener(eventType, () => {
-            searchInput();
+            searchBarScroll();
         });
     });
 
@@ -1478,6 +1499,7 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
         searchAreaEl.classList.toggle("opened");
         updateSort(getSearchValue());
         searchInput();
+        searchInputsEl.scrollLeft = 0;
     });
     searchInputsEl.appendChild(newSearchBarEl);
     searchInputsEl.appendChild(newSearchBarDisplayEl);
@@ -1673,6 +1695,69 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                     model.position.set(0, 0, 0);
                     model.rotation.y = THREE.MathUtils.degToRad(135);
                     scene.add(model);
+
+                    (() => {
+                        const currentLocationPoint = new THREE.BoxGeometry(
+                            .02,
+                            .02,
+                            .02,
+                        );
+                        const cube = new THREE.Mesh(
+                            currentLocationPoint,
+                            new THREE.MeshStandardMaterial({ color: "red" })
+                        );
+
+                        const baseLocation = [ // 0, 0, 0に対応する場所
+                            35.860550,
+                            139.269142
+                        ];
+
+                        const currentLocation = [
+                            35.860382, 139.269277
+                        ];
+
+                        
+                        
+                        function latlonToXYZ(baseLat, baseLon){
+                            const lat = baseLat - baseLocation[0];
+                            const lon = baseLon - baseLocation[1];
+                            const M = [
+                                [866.69667299, 1236.85206018],   // row for x
+                                [0.0, 0.0],                      // row for y
+                                [-2161.60126554, 20.85725703],   // row for z
+                            ];
+                            const x = M[0][0]*lat + M[0][1]*lon;
+                            const y = M[1][0]*lat + M[1][1]*lon;
+                            const z = M[2][0]*lat + M[2][1]*lon;
+                            return { x, y, z };
+                        }
+                        const pos = latlonToXYZ(currentLocation[0], currentLocation[1]);
+                        cube.position.set(
+                            pos.x,
+                            1,
+                            pos.z,
+                        );
+                        console.log(pos);
+
+                        scene.add(cube);
+                        /* 
+                         0, 0,  0 : 35.860550, 139.269142
+                         1, 0,  0 : 35.860467, 139.269696
+                        -1, 0,  0 : 35.860490, 139.268412
+
+                         0, 0,  1 : 35.860096, 139.269190
+                         0, 0, -1 : 35.860991, 139.269053
+
+                         ___
+
+                         0, 0,  0 :  0,         0
+                         1, 0,  0 : -0.000083,  0.000554
+                        -1, 0,  0 : -0.00006,  -0.00073
+
+                         0, 0,  1 : -0.000454,  0.000048
+                         0, 0, -1 :  0.000441, -0.000641
+                        */
+                    })();
 
                     // モデルが読み込まれたら OrbitControls の注視点をモデル中心に設定
                     function setCamFocus(x = 0, y = 0, z = 0) {
@@ -2035,7 +2120,10 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                         let lastHandleEventAt;
 
                         function handleEvent(x, y) {
-                            if ((Date.now() - lastHandleEventAt) < 500) return;
+                            if (
+                                (Date.now() - lastHandleEventAt) < 500 ||
+                                y >= window.innerHeight - Math.max(maps_buttons_left.clientHeight, maps_buttons_right.clientHeight)
+                            ) return;
                             lastHandleEventAt = Date.now();
                             
                             const candidateLabels = [];
@@ -2629,14 +2717,6 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
             const bottomStereotypedText = "階を表示中";
 
             button.addEventListener("click", () => {
-                /* if (index === 0) {
-                    updateCameraAngle({
-                        horizontal: 45,
-                        vertical: 85,
-                        duration: 0
-                    });
-                    return;
-                } */
                 const allButtons = maps_buttons_left.querySelectorAll(".button");
 
                 const isOnlyValid = !button.classList.contains("invalid") &&
