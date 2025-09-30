@@ -656,7 +656,7 @@ function cameraPan({
     const offset = new THREE.Vector3().subVectors(maps_camera.position, maps_controls.target);
 
     function instantMove () {
-        maps_controls.target.set(targetX, maps_controls.target.y, targetZ);
+        // maps_controls.target.set(targetX, maps_controls.target.y, targetZ);
         maps_camera.position.copy(maps_controls.target).add(offset);
         maps_controls.update();
     }
@@ -673,7 +673,7 @@ function cameraPan({
             duration: duration,
             ease: "power2.inOut",
             onUpdate: () => {
-                maps_controls.target.set(startTarget.x, maps_controls.target.y, startTarget.z);
+                // maps_controls.target.set(startTarget.x, maps_controls.target.y, startTarget.z);
                 maps_camera.position.copy(maps_controls.target).add(offset);
                 maps_controls.update();
             },
@@ -747,7 +747,7 @@ let maps_modelParts = {};
 const mapsView = d.createElement("div");
 
 function maps_addLabelTransition (label, transitionDuration = .5) {
-    label.style.setProperty("--duration", `${transitionDuration}s`)
+    label.style.setProperty("--duration", `${transitionDuration}s`);
     label.classList.add("addTransition");
     const onTransitionEnd = (e) => {
         if (e.target === label) { // この要素自身のトランジションのみ対象
@@ -784,10 +784,10 @@ d.addEventListener("click", e => {
         const tile = e.target.closest(".tile");
         if (tile) openTile(tile);
     }
-    if (!searchBarsEl.contains(e.target) && !exhibitsBottomBar.contains(e.target)) {
-        searchAreaEl.classList.remove("opened");
-        updateSort("");
-    }
+    // if (!searchBarsEl.contains(e.target) && !exhibitsBottomBar.contains(e.target)) {
+    //     searchAreaEl.classList.remove("opened");
+    //     updateSort("");
+    // }
 });
 
 function startObserve({ target, callback, once = true, threshold = 0 }) {
@@ -1348,7 +1348,7 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
     const newSearchBarDisplayEl = d.createElement("div");
     newSearchBarDisplayEl.className = "searchBarDisplay";
 
-    const sagests = searchAreaEl.querySelector(".sagests");
+    const sagestsEl = searchAreaEl.querySelector(".sagests");
 
     newSearchBarEl.className = "searchBar";
     newSearchBarEl.type = "text";
@@ -1415,7 +1415,7 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
             }
         }, 150);
 
-        sagests.innerHTML = "";
+        sagestsEl.innerHTML = "";
         const isSagestVaild = searchWord && searchWord !== "" && searchWord.length !== 0;
         const sagestResults = [];
         let sagestsHeight = 0;
@@ -1457,12 +1457,12 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                 newExhibitName.textContent = sortResult.exhibits[i].name;
                 newExhibitName.className = "exhibitName";
                 
-                sagests.appendChild(newSet);
+                sagestsEl.appendChild(newSet);
                 newSet.appendChild(newSagest);
                 newSet.appendChild(newExhibitName);
             }
         });
-        sagestsHeight = sagests.clientHeight;
+        sagestsHeight = sagestsEl.clientHeight;
         mainContent.style.setProperty("--sagestsHeight", getIsOpened() && getIsFocus() ? sagestsHeight + "px" : 0);
         searchBarsEl.style.setProperty("--barShift", "0px");
         searchBarsEl.style.setProperty("--span0Width", "0px");
@@ -1483,13 +1483,18 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
         } else {
             newSearchBarDisplayEl.innerHTML = "検索できます";
         }
+        searchAreaEl.classList.add("focus");
         newSearchBarEl.focus();
         searchBarScroll();
     }
 
     newSearchBarEl.addEventListener("focus", () => {
-        searchAreaEl.classList.add("focus");
         searchInput();
+    });
+    newSearchBarEl.addEventListener("blur", () => {
+        setTimeout(() => {
+            searchAreaEl.classList.remove("focus");
+        }, 100);
     });
     newSearchBarEl.addEventListener("scroll", searchBarScroll);
 
@@ -2124,7 +2129,9 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                                 }
                                 updateLabelScale(el);
                             }
-
+                            const openCtrlTimeoutMs = Math.min(
+                                2.1 - maps_camera.zoom, .8
+                            ) * 1000;
                             if (
                                 Math.abs(x - touchStart[0]) < 5 &&
                                 Math.abs(y - touchStart[1]) < 5
@@ -2135,12 +2142,16 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                                         labelElement.classList.contains("opened") &&
                                         labelElement !== topLabel
                                     ) {
-                                        labelOpenCtrl(labelElement, false);
+                                        setTimeout(() => {
+                                            labelOpenCtrl(labelElement, false);
+                                        }, openCtrlTimeoutMs);
                                     }
                                 });
                             }
                             if (topLabel) {
-                                labelOpenCtrl(topLabel);
+                                setTimeout(() => {
+                                    labelOpenCtrl(topLabel);
+                                }, openCtrlTimeoutMs);
                             }
                         }
 
@@ -2292,7 +2303,7 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                     const labelPosUpdateThreshold = 2;
                     function animate() {
                         requestAnimationFrame(animate);
-                        if ((Date.now() - lastAnimUpdateAt > labelAnimUpdateThresholdMs * .6) || !lastAnimUpdateAt) {
+                        if ((Date.now() - lastAnimUpdateAt > labelAnimUpdateThresholdMs) || !lastAnimUpdateAt) {
                             maps_renderer.render(scene, maps_camera);
                             maps_labelRenderer.render(scene, maps_camera);
                             maps_controls.update();
@@ -2482,7 +2493,8 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                         camVertical = Math.asin(cameraDirection.y) * -radToDeg;
 
                         // コンパスを回転
-                        compassImg.style.transform = `rotate(${camHorizontal}deg)`;
+                        const compassRotate = `rotate(${camHorizontal}deg)`;
+                        if (compassImg.style.transform !== compassRotate) compassImg.style.transform = compassRotate;
 
                         const camPos = maps_camera.position;
                         mapsView.style.setProperty("--camPosX", camPos.x);
@@ -2763,9 +2775,13 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
 
         const getCamHorizontalSnap = (horizontal) => Math.round(Math.round(horizontal / 45) * 45);
 
+        let isMovingCam = false;
+
         (() => {
             button_dimension.addEventListener("click", () => {
+                if (isMovingCam) return;
                 isShow2DMap = !isShow2DMap;
+                isMovingCam = true;
                 if (isShow2DMap) {
                     button_dimension.classList.add("pushed");
                     updateCameraAngle({
@@ -2774,6 +2790,7 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                         onComplete: () => {
                             setCamAngleLimit(0, 0);
                             mapsView.style.pointerEvents = "auto";
+                            isMovingCam = false;
                         }
                     });
                     controlMethodUpdate({
@@ -2783,7 +2800,7 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                         },
                         mouseButtons: {
                             LEFT: THREE.MOUSE.PAN,
-                            MIDDLE: THREE.MOUSE.NONE,
+                            MIDDLE: THREE.MOUSE.PAN,
                             RIGHT: THREE.MOUSE.NONE
                         }
                     });
@@ -2794,6 +2811,7 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                         horizontal: camHorizontal,
                         onComplete: () => {
                             setCamAngleLimit();
+                            isMovingCam = false;
                         }
                     });
                     controlMethodUpdate();
@@ -2808,9 +2826,18 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                 button_currentPos.classList.remove("opened");
                 updateButtonText(button_currentPos, "現在地");
             }
-            function alertText () {
+            function alertText (type = 0) {
+                let text;
+                switch (type) {
+                    case 0:
+                        text = "位置情報が許可された\n場合に利用できます";
+                        break;
+                    case 1:
+                        text = "学園内にいる場合に\n利用できます";
+                        break;
+                }
                 button_currentPos.classList.add("opened");
-                updateButtonText(button_currentPos, "学園内にいて､位置情報が\n許可された場合に利用可能");
+                updateButtonText(button_currentPos, text);
                 setTimeout(() => {
                     if (button_currentPos.classList.contains("opened")) defaulText();
                 }, 3000);
@@ -2868,24 +2895,30 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
 
                                 console.log("Updated location:", latitude, longitude);
 
-                                if (latitude && longitude && isPointInArea([
-                                    latitude, longitude
-                                ])) {
-                                    const pos = latlonToXYZ(latitude, longitude);
-                                    currentLocationPointMesh.position.set(
-                                        pos.x,
-                                        0,
-                                        pos.z,
-                                    );
-                                    currentLocationPointMesh.material.opacity = 1;
-                                    defaulText();
+                                if (latitude && longitude) {
+                                    if (isPointInArea([
+                                        latitude, longitude
+                                    ])) {
+
+                                        const pos = latlonToXYZ(latitude, longitude);
+                                        currentLocationPointMesh.position.set(
+                                            pos.x,
+                                            0,
+                                            pos.z,
+                                        );
+                                        currentLocationPointMesh.material.opacity = 1;
+                                        defaulText();
+                                    } else {
+                                        cansel();
+                                        alertText(1);
+                                    }
                                 } else {
                                     cansel();
-                                    alertText();
+                                    alertText(0);
                                 }
                             }, (error) => {
                                 cansel();
-                                alertText();
+                                alertText(0);
                                 console.log("Error getting location:", error);
                             }, {
                                 enableHighAccuracy: true,
