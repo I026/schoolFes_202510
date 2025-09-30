@@ -125,6 +125,7 @@ const maps_words = {
 };
 
 const maps_locationNames = {
+    Bus: "バス",
     Entrance: "入口",
     Woodworking: `${maps_words.Subjects.Woodworking}${maps_words.Room}`,
     Dining: "食堂",
@@ -151,6 +152,15 @@ const maps_locationNames = {
 };
 
 const maps_locations = {
+    currentLocationPoint: {
+        name: "現在地",
+        description: "おおよその現在地",
+        isEdgeShow: true,
+        offset: {
+            y: .1,
+        },
+    },
+
     F1_Entrance_Arch: {
         name: maps_locationNames.Entrance,
         emphasis: true,
@@ -158,13 +168,20 @@ const maps_locations = {
             name: "正面玄関"
         },
         isAlwaysShow: true,
+        isEdgeShow: true,
     },
     Dining_Roof: {
         name: maps_locationNames.Dining,
         offset: {
             y: .2,
         },
+        description: `${maps_locationNames.Dining}のメニュー`,
+        onClick: () => {
+            window.location.href = "./?page=5";
+        },
+        image: "./medias/pages/0.png",
         isAlwaysShow: true,
+        isEdgeShow: true,
     },
 
     F1_Art_WC: {
@@ -258,9 +275,6 @@ const maps_locations = {
         location: {
             name: maps_locationNames.Woodworking,
         },
-        offset: {
-            y: .5,
-        },
     },
     F1_Science_A: {
         location: {
@@ -290,9 +304,6 @@ const maps_locations = {
     F1_Science_Laboratory: {
         location: {
             name: maps_locationNames.Science_Laboratory,
-        },
-        offset: {
-            y: .5,
         },
     },
     F2_SocialStudies_Laboratory: {
@@ -352,8 +363,8 @@ const maps_locations = {
         },
     },
     BusStation_Base: {
-        name: "バス停",
-        description: '<img src="./medias/pages/0.png" />',
+        name: `${maps_locationNames.Bus}停`,
+        description: `${maps_locationNames.Bus}ダイヤを見る`,
         image: "./medias/pages/0.png",
         onClick: () => {
             window.location.href = "./?page=5";
@@ -362,6 +373,7 @@ const maps_locations = {
             y: .1,
         },
         isAlwaysShow: true,
+        isEdgeShow: true,
     },
 
     F1_J1_1: exhibits.J1_1,
@@ -693,9 +705,8 @@ function maps_frameObject({
     // ワールド座標系に変換
     bbox.applyMatrix4(target.matrixWorld);
 
-    const size = new THREE.Vector3();
-    bbox.getSize(size);
     const center = new THREE.Vector3();
+    bbox.getSize(center);
     bbox.getCenter(center);
 
     // ズームもスムーズに変更する場合
@@ -723,6 +734,7 @@ function maps_frameObject({
             const newTarget = new THREE.Vector3(center.x, currentTarget.y, center.z);
             cameraPan({
                 x: newTarget.x,
+                y: newTarget.y,
                 z: newTarget.z,
                 duration: duration
             });
@@ -752,9 +764,7 @@ const maps_buttons_left = d.createElement("div");
 
 function maps_changeFloor (floor) {
     const floorButtons = maps_buttons_left.querySelectorAll("div.button");
-    floorButtons.forEach((button, index, arr) => {
-        if (index === arr.length - floor) button.click();
-    });
+    floorButtons[0].click();
 }
 
 function get_isEveryFloorValid () {
@@ -1047,10 +1057,15 @@ function getIsSortConforming (exhibit, conditions = getSortConditions(), searchW
     };
 }
 
-function updateButtonText (targetEl, newText) {
+function updateButtonText (targetEl, textValue) {
     if (!targetEl) return;
+    const newText = textValue;
     const newTextArea = d.createElement("span");
-    if (targetEl.querySelector("span")?.textContent !== newText) {
+    const existingSpan = targetEl.querySelector("span");
+    if (
+        existingSpan?.textContent !== newText ||
+        existingSpan?.innerHTML !== newText
+    ) {
         const animDuration = 300;
         targetEl.querySelectorAll("span").forEach(span => {
             span.style.animation = "none";
@@ -1060,7 +1075,7 @@ function updateButtonText (targetEl, newText) {
                 span.remove();
             }, animDuration * 2);
         });
-        newTextArea.textContent = newText;
+        newTextArea.innerHTML = newText.replaceAll("\n", "<br>");
         newTextArea.style.animation = `showText ${animDuration}ms ease-in-out both`;
         newTextArea.style.animationDelay = `${animDuration}ms`;
         newTextArea.style.position = "absolute";
@@ -1071,9 +1086,13 @@ function updateButtonText (targetEl, newText) {
         targetEl.style.display = "flex";
         targetEl.style.justifyContent = "center";
         targetEl.style.alignItems = "center";
-        setTimeout(() => {
-            targetEl.style.width  = `${newTextArea.offsetWidth + 20}px`;
-            targetEl.style.height = `${newTextArea.offsetHeight}px`;
+        requestAnimationFrame(() => {
+            const width  = newTextArea.offsetWidth + 10;
+            const height = newTextArea.offsetHeight;
+            targetEl.style.setProperty("--openedWidth",  width  + "px");
+            targetEl.style.setProperty("--openedHeight", height + "px");
+            targetEl.style.width  = width + "px";
+            targetEl.style.height = height + "px";
         });
     }
 }
@@ -1354,19 +1373,16 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
     }
 
     function searchBarScroll () {
-        // console.log(
-        //     newSearchBarEl.scrollLeft + "\n",
-        //     newSearchBarEl.getBoundingClientRect().right -
-        //     newSearchBarDisplayEl.getBoundingClientRect().right
-        // );
-        // newSearchBarEl.scrollWidth - newSearchBarEl.clientWidth
+        if (
+            (newSearchBarEl.scrollWidth - newSearchBarEl.offsetWidth) <= 0
+        ) {
+            newSearchBarEl.scrollLeft = 0;
+        }
 
         const offsetPx = newSearchBarEl.scrollLeft;
-        console.log("offsetPx : ", offsetPx);
         newSearchBarDisplayEl.style.setProperty("--barScrollPx", (
             offsetPx * -1
         ) + "px");
-
         searchBarsEl.style.setProperty("--scrollLeft", searchBarsEl.scrollLeft + "px");
     }
 
@@ -1406,9 +1422,6 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
         sortResult.searchHits.forEach((hitItem, i) => {
             if (isSagestVaild) {
                 const sagestSplit = sortResult.spliteds[i][hitItem?.[0]?.[0][1]];
-                // const sagestSplit = hitItem?.[0]?.[0]?.[0]?.split(
-                //     new RegExp(`(${getEscapeReg(searchWord)})`)
-                // );
                 const sagestTexts = [
                     sagestSplit?.[0] || "",
                     sagestSplit?.[1] || "",
@@ -1470,13 +1483,8 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
         } else {
             newSearchBarDisplayEl.innerHTML = "検索できます";
         }
-        searchBarScroll();
-        console.log(
-            "clog\n",
-            newSearchBarEl.scrollLeft,
-            newSearchBarEl.scrollWidth - newSearchBarEl.clientWidth
-        );
         newSearchBarEl.focus();
+        searchBarScroll();
     }
 
     newSearchBarEl.addEventListener("focus", () => {
@@ -1683,7 +1691,14 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
         // 3Dモデル読み込み
         const loader = new GLTFLoader();
         let model; // モデルを外で保持
-        
+        const currentLocationPointMesh = new THREE.Mesh(
+            new THREE.BoxGeometry(
+                .01,
+                .01,
+                .01,
+            )
+        );
+
         const getFmtedObjName = (name) => name.replace("F" + maps_getFloor(name) + "_", "");
 
         loadModel = () => {
@@ -1696,97 +1711,13 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                     model.rotation.y = THREE.MathUtils.degToRad(135);
                     scene.add(model);
 
-                    (() => {
-                        const currentLocationPoint = new THREE.BoxGeometry(
-                            .02,
-                            .02,
-                            .02,
-                        );
-                        const cube = new THREE.Mesh(
-                            currentLocationPoint,
-                            new THREE.MeshStandardMaterial({ color: "red" })
-                        );
-                        
-                        const mapping = [
-                            [[ 0,  0 ], [35.860550, 139.269142]],
-
-                            [[ 1,  0 ], [35.860467, 139.269696]],
-                            [[-1,  0],  [35.860490, 139.268412]],
-
-                            // [[ 2,  0],  [35.860509, 139.270263]],
-                            // [[-2,  0],  [35.860594, 139.267906]],
-
-                            [[ 0,  1],  [35.860096, 139.269190]],
-                            [[ 0, -1],  [35.860991, 139.269053]],
-                            // [[ 0, -2],  [35.861763, 139.268991]],
-                            
-                            [[ 1,  1],  [35.860089, 139.269702]],
-                            [[ 1, -1],  [35.860990, 139.269652]],
-                            [[-1, -1],  [35.861308, 139.268184]],
-                            [[-1,  1],  [35.860063, 139.268546]],
-                        ];
-
-                        // 変換関数
-                        function latlonToXYZ(lat, lon) {
-                            let weightedSumX = 0;
-                            let weightedSumY = 0;
-                            let totalWeight = 0;
-                            
-                            // pは重みの指数。大きいほど近くの点の影響が強くなる。2が一般的。
-                            const p = 2; 
-
-                            for (const entry of mapping) {
-                                const [localX, localY] = entry[0];
-                                const [mapLat, mapLon] = entry[1];
-
-                                // 緯度と経度の差を計算
-                                const diffLat = lat - mapLat;
-                                const diffLon = lon - mapLon;
-
-                                // 2点間の距離の2乗を計算（平方根の計算は重いため省略）
-                                const distSq = diffLat * diffLat + diffLon * diffLon;
-
-                                // 距離がゼロ（完全に一致）の場合、その点の座標を即座に返す
-                                if (distSq === 0) {
-                                    return [localX, localY];
-                                }
-
-                                // 距離に基づいた重みを計算 (weight = 1 / distance^p)
-                                const weight = 1 / Math.pow(distSq, p / 2);
-
-                                // 重み付きの合計を計算
-                                weightedSumX += localX * weight;
-                                weightedSumY += localY * weight;
-                                totalWeight += weight;
-                            }
-                            
-                            // すべての重みがゼロでなければ、重み付き平均を計算して返す
-                            if (totalWeight === 0) {
-                                // 全ての点が同じ場所にあるなど、特殊なケース
-                                return [0, 0]; 
-                            }
-
-                            const estimatedX = weightedSumX / totalWeight;
-                            const estimatedY = weightedSumY / totalWeight;
-
-                            return [estimatedX, estimatedY];
-                        }
-
-                        const currentLocation = [
-                            35.860186, 139.268867
-                        ];
-
-                        const pos = latlonToXYZ(currentLocation[0], currentLocation[1]);
-                        console.log(pos);
-
-                        cube.position.set(
-                            pos[0],
-                            1,
-                            pos[1],
-                        );
-
-                        scene.add(cube);
-                    })();
+                    model.add(currentLocationPointMesh);
+                    currentLocationPointMesh.position.set(
+                        0, 0, 0
+                    );
+                    currentLocationPointMesh.name = "currentLocationPoint";
+                    currentLocationPointMesh.visible = false;
+                    currentLocationPointMesh.material.opacity = 0;
 
                     // モデルが読み込まれたら OrbitControls の注視点をモデル中心に設定
                     function setCamFocus(x = 0, y = 0, z = 0) {
@@ -1874,7 +1805,7 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                                     let geom = mesh.geometry.clone();
 
                                     // 1. 重複頂点の削除
-                                    const tolerance = 0.015; // 適宜調整
+                                    const tolerance = 0.0005; // 適宜調整
                                     geom = BufferGeometryUtils.mergeVertices(geom, tolerance);
 
                                     // 2. ワールド変換を適用
@@ -1939,6 +1870,8 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                         item.parent.remove(item.original);
                         maps_modelParts[item.original.name] = item.merged;
                     });
+
+                    console.log("maps_modelParts : \n", maps_modelParts);
 
                     (() => {
                         function blinkBrinkerLight(objectName, blinkInterval = 500, targetMaterialName = "Bus_BrinkerLight") {
@@ -2026,11 +1959,11 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                         if (!maps_locations[partName]) return;
 
                         const label = document.createElement("div");
-                        label.className = `mapsLabel${maps_locations[partName].isAlwaysShow ? " alwaysShow" : ""}`;
+                        label.className = `mapsLabel${maps_locations[partName].isAlwaysShow ? " alwaysShow" : ""}${maps_locations[partName].isEdgeShow ? " edgeShow" : ""}`;
                         label.setAttribute("exhibits", partName);
 
                         if (maps_locations[partName]) {
-                            label.className = `mapsLabel${maps_locations[partName].isAlwaysShow ? " alwaysShow" : ""}`;
+                            label.className = `mapsLabel${maps_locations[partName].isAlwaysShow ? " alwaysShow" : ""}${maps_locations[partName].isEdgeShow ? " edgeShow" : ""}`;
                             label.setAttribute("exhibits", partName);
 
                             setTagAttributes(maps_locations[partName].tag, label);
@@ -2042,6 +1975,7 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                             const titleText = getIsHTMLTag(maps_locations[partName]?.name) ? maps_locations[partName].name : truncateText({text: maps_locations[partName].name, length: 10});
                             const descriptionText = maps_locations[partName]?.description;
                             const locationText = maps_locations[partName]?.location?.name;
+                            const imgLink = maps_locations[partName]?.image;
                             const detailTile = exhibitsArea.querySelector(`.tile[exhibits=${getFmtedObjName(partName)}]`);
 
                             if (titleText) {
@@ -2083,6 +2017,12 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                                     });
                                 }
                                 informations.appendChild(detail);
+                            }
+
+                            if (imgLink) {
+                                const img = d.createElement("img");
+                                img.src = imgLink;
+                                informations.appendChild(img);
                             }
                         }
 
@@ -2175,6 +2115,16 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
 
                             const topLabel = candidateLabels[0];
 
+                            function labelOpenCtrl (el, isToOpen = !el.classList.contains("opened")) {
+                                maps_addLabelTransition(el);
+                                if (isToOpen) {
+                                    el.classList.add("opened");
+                                } else {
+                                    el.classList.remove("opened");
+                                }
+                                updateLabelScale(el);
+                            }
+
                             if (
                                 Math.abs(x - touchStart[0]) < 5 &&
                                 Math.abs(y - touchStart[1]) < 5
@@ -2185,14 +2135,12 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                                         labelElement.classList.contains("opened") &&
                                         labelElement !== topLabel
                                     ) {
-                                        labelElement.classList.remove("opened");
-                                        maps_addLabelTransition(labelElement);
+                                        labelOpenCtrl(labelElement, false);
                                     }
                                 });
                             }
                             if (topLabel) {
-                                topLabel.classList.toggle("opened");
-                                maps_addLabelTransition(topLabel);
+                                labelOpenCtrl(topLabel);
                             }
                         }
 
@@ -2215,21 +2163,64 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
 
                     const getFmtedPx = (px) => px.replace("px", "");
 
+                    function updateLabelScale (el) {
+                        const element = el;
+                            const labelChildWidths = [];
+                            let labelHeight = 0;
+                            let labelWidth  = 0;
+                            const title = element.querySelector(".title");
+                            if (element.classList.contains("opened")) {
+                                const childrens = Array.from(element.children).filter(child => !child.classList.contains("arrow"));
+                                childrens.forEach(child => {
+                                    labelChildWidths.push(child.offsetWidth);
+                                    const style = window.getComputedStyle(element);
+                                    labelHeight = Math.max(
+                                        child.offsetTop +
+                                        child.getBoundingClientRect().height +
+                                        parseFloat(style.marginBottom),
+                                        parseFloat(style.marginTop),
+                                        labelHeight
+                                    );
+                                });
+                                labelWidth = Math.max(...labelChildWidths);
+                            } else {
+                                if (title) {
+                                    labelWidth  = title.getBoundingClientRect().width;
+                                    labelHeight = title.getBoundingClientRect().height;
+                                }
+                            }
+
+                            const labelWidthProperty = "--width";
+                            const labelHeightProperty = "--height";
+
+                            function setLabelScale () {
+                                if (getComputedStyle(element).getPropertyValue(labelWidthProperty) !== labelWidth + "px") {
+                                    element.style.setProperty(labelWidthProperty,  labelWidth + "px");
+                                }
+                                if (getComputedStyle(element).getPropertyValue(labelHeightProperty) !== labelHeight + "px") {
+                                    element.style.setProperty(labelHeightProperty, labelHeight + "px");
+                                }
+                                
+                                if (element?.getBoundingClientRect().width < title?.getBoundingClientRect().width) {
+                                    element.classList.add("over");
+                                } else {
+                                    element.classList.remove("over");
+                                }
+                            }
+                            setLabelScale();
+                            return [labelWidth, labelHeight];
+                    }
 
                     function updateLabelsPosition() {
-                        const camPos = maps_camera.position;
-
-                        mapsView.style.setProperty("--camPosX", camPos.x);
-                        mapsView.style.setProperty("--camPosZ", camPos.z);
-                        mapsView.style.setProperty("--camZoom", maps_camera.zoom);
-
                         Object.values(maps_labels).forEach(({ element, part }, index) => {
                             // const objPos = part.userData?.originalTransform?.position.clone() || part.getWorldPosition(new THREE.Vector3());
                             // const camDistance = camPos.distanceTo(objPos);
 
                             const isAlwaysShow = maps_locations[part.name]?.isAlwaysShow || false;
 
-                            if ((gsap.getProperty(Array.isArray(part.material) ? part.material[0] : part.material, "opacity") === 1) || isAlwaysShow) {
+                            if (
+                                (gsap.getProperty(Array.isArray(part.material) ? part.material[0] : part.material, "opacity") === 1 || isAlwaysShow)
+                            ) {
                                 if (getIsSortConforming(maps_locations[part.name], getSortConditions(), getSearchValue()).isConforming) {
                                     if (element.classList.contains("invalid")) element.classList.remove("invalid");
                                     element.style.setProperty("--labelOpacity", 1);
@@ -2246,50 +2237,10 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                                 !element.classList.contains("invalid") && element.querySelector(".informations")?.innerHTML.length !== 0
                             ));
 
-                            if (element.getAttribute("isPressable") === "true" || element.style.opacity !== 0) {
-                                const labelChildWidths = [];
-                                let labelHeight = 0;
-                                let labelWidth  = 0;
-                                const title = element.querySelector(".title");
-                                if (element.classList.contains("opened")) {
-                                    const childrens = Array.from(element.children).filter(child => !child.classList.contains("arrow"));
-                                    childrens.forEach(child => {
-                                        labelChildWidths.push(child.offsetWidth);
-                                        const style = window.getComputedStyle(element);
-                                        labelHeight = Math.max(
-                                            child.offsetTop +
-                                            child.getBoundingClientRect().height +
-                                            parseFloat(style.marginBottom),
-                                            parseFloat(style.marginTop),
-                                            labelHeight
-                                        );
-                                    });
-                                    labelWidth = Math.max(...labelChildWidths);
-                                } else {
-                                    if (title) {
-                                        labelWidth  = title.getBoundingClientRect().width;
-                                        labelHeight = title.getBoundingClientRect().height;
-                                    }
-                                }
-
-                                const labelWidthProperty = "--width";
-                                const labelHeightProperty = "--height";
-
-                                function setLabelScale () {
-                                    if (getComputedStyle(element).getPropertyValue(labelWidthProperty) !== labelWidth + "px") {
-                                        element.style.setProperty(labelWidthProperty,  labelWidth + "px");
-                                    }
-                                    if (getComputedStyle(element).getPropertyValue(labelHeightProperty) !== labelHeight + "px") {
-                                        element.style.setProperty(labelHeightProperty, labelHeight + "px");
-                                    }
-                                    
-                                    if (element?.getBoundingClientRect().width < title?.getBoundingClientRect().width) {
-                                        element.classList.add("over");
-                                    } else {
-                                        element.classList.remove("over");
-                                    }
-                                }
-                                setLabelScale();
+                            if (element.getAttribute("isPressable") === "true" || (element.style.opacity !== 0 && element.visible)) {
+                                const updateRes = updateLabelScale(element);
+                                const labelWidth  = updateRes[0];
+                                const labelHeight = updateRes[1];
 
                                 const match = element.style.transform.match(/translate\((-?\d+\.?\d*)px,\s*(-?\d+\.?\d*)px\)/);
                                 const labelXPx = parseFloat(match[1]);
@@ -2533,6 +2484,11 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                         // コンパスを回転
                         compassImg.style.transform = `rotate(${camHorizontal}deg)`;
 
+                        const camPos = maps_camera.position;
+                        mapsView.style.setProperty("--camPosX", camPos.x);
+                        mapsView.style.setProperty("--camPosZ", camPos.z);
+                        mapsView.style.setProperty("--camZoom", maps_camera.zoom);
+
                         if (now - lastLabelUpdate > labelAnimUpdateThresholdMs * 8) {
                             lastLabelUpdate = now;
                             updateLabelsPosition();
@@ -2713,33 +2669,27 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
         }
 
         const button_dimension = d.createElement("div");
-        function button_dimensionMode_2D (isAdd) {
-            if (isAdd === true) {
-                button_dimension.classList.add("mode_2D");
-            } else if (isAdd === false) {
-                button_dimension.classList.remove("mode_2D");
-            } else {
-                return button_dimension.classList.contains("mode_2D");
-            }
-        }
         button_dimension.className = "dimension button";
 
+        const button_currentPos = d.createElement("div");
+        button_currentPos.className = "button";
+
         const floors = {
-            f1: {
-                name: "1階"
+            f3: {
+                name: "3"
             },
             f2: {
-                name: "2階"
+                name: "2"
             },
-            f3: {
-                name: "3階"
+            f1: {
+                name: "1"
             },
         };
 
         Object.values(floors).slice().reverse().forEach((floor, index) => {
             const button = d.createElement("div");
             
-            button.textContent = floor.name;
+            button.innerHTML = `<span>F</span>${floor.name}`;
             button.setAttribute("floor", Object.keys(floors)[Object.keys(floors).length - index - 1]);
             button.className = "button";
 
@@ -2791,14 +2741,16 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                         part.material.depthWrite = isPartActive;
                     }
 
-                    gsap.to(part.material, {
-                        duration: 0.5,
-                        opacity: isPartActive ? 1 : .05,
-                        ease: "power2.inOut"
-                    });
-                    setEdgeStyle(part, {
-                        opacity: isPartActive ? 1 : 0
-                    });
+                    if (part.visible) {
+                        gsap.to(part.material, {
+                            duration: 0.5,
+                            opacity: isPartActive ? 1 : .05,
+                            ease: "power2.inOut"
+                        });
+                        setEdgeStyle(part, {
+                            opacity: isPartActive ? 1 : 0
+                        });
+                    }
                 });
 
                 // updateBottomText(activeFloors.length === 1 ? activeFloors[0] : null);
@@ -2815,6 +2767,7 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
             button_dimension.addEventListener("click", () => {
                 isShow2DMap = !isShow2DMap;
                 if (isShow2DMap) {
+                    button_dimension.classList.add("pushed");
                     updateCameraAngle({
                         horizontal: getCamHorizontalSnap(camHorizontal),
                         vertical: 89.5,
@@ -2835,6 +2788,7 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                         }
                     });
                 } else {
+                    button_dimension.classList.remove("pushed");
                     setCamAngleLimit()
                     updateCameraAngle({
                         horizontal: camHorizontal,
@@ -2847,6 +2801,132 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                 if (get_isEveryFloorValid()) maps_changeFloor(1);
             });
 
+            updateButtonText(button_currentPos, "現在地");
+            let geoWatchId;
+            const isGeolocationVaild = "geolocation" in navigator;
+            function defaulText () {
+                button_currentPos.classList.remove("opened");
+                updateButtonText(button_currentPos, "現在地");
+            }
+            function alertText () {
+                button_currentPos.classList.add("opened");
+                updateButtonText(button_currentPos, "学園内にいて､位置情報が\n許可された場合に利用可能");
+                setTimeout(() => {
+                    if (button_currentPos.classList.contains("opened")) defaulText();
+                }, 3000);
+            }
+            function cansel () {
+                button_currentPos.classList.remove("pushed");
+                currentLocationPointMesh.material.opacity = 0;
+                navigator.geolocation.clearWatch(geoWatchId);
+            }
+            if (isGeolocationVaild) {
+                button_currentPos.addEventListener("click", () => {
+                    button_currentPos.classList.toggle("pushed");
+                    if (button_currentPos.classList.contains("pushed")) {
+                        const baseLocation = [ // 0, 0, 0に対応する場所
+                            35.860550,
+                            139.269142
+                        ];
+
+                        function isPointInArea(point, quad = [
+                            [35.862096, 139.269525],
+                            [35.859773, 139.266558],
+                            [35.858807, 139.269504],
+                            [35.860690, 139.271212]
+                        ]) {
+                        // 三角形内判定（バリセンター法）
+                            function pointInTriangle(p, a, b, c) {
+                                const det = (b[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (b[1] - a[1]);
+                                const l1 = ((b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0])) / det;
+                                const l2 = ((c[0] - a[0]) * (p[1] - a[1]) - (c[1] - a[1]) * (p[0] - a[0])) / -det;
+                                const l3 = 1 - l1 - l2;
+                                return l1 >= 0 && l2 >= 0 && l3 >= 0;
+                            }
+                            // 四角形を2つの三角形に分けて判定
+                            return pointInTriangle(point, quad[0], quad[1], quad[2]) || pointInTriangle(point, quad[0], quad[2], quad[3]);
+                        }
+                        
+                        function latlonToXYZ(baseLat, baseLon){
+                            const lat = baseLat - baseLocation[0];
+                            const lon = baseLon - baseLocation[1];
+                            const M = [
+                                [866.69667299, 1236.85206018], // row for x
+                                [0.0, 0.0],                    // row for y
+                                [-2161.60126554, 20.85725703], // row for z
+                            ];
+                            const x = M[0][0]*lat + M[0][1]*lon;
+                            const y = M[1][0]*lat + M[1][1]*lon;
+                            const z = M[2][0]*lat + M[2][1]*lon;
+                            return { x, y, z };
+                        }
+
+                        geoWatchId = navigator.geolocation.watchPosition(
+                            (position) => {
+                                const latitude  = position.coords.latitude;
+                                const longitude = position.coords.longitude;
+
+                                console.log("Updated location:", latitude, longitude);
+
+                                if (latitude && longitude && isPointInArea([
+                                    latitude, longitude
+                                ])) {
+                                    const pos = latlonToXYZ(latitude, longitude);
+                                    currentLocationPointMesh.position.set(
+                                        pos.x,
+                                        0,
+                                        pos.z,
+                                    );
+                                    currentLocationPointMesh.material.opacity = 1;
+                                    defaulText();
+                                } else {
+                                    cansel();
+                                    alertText();
+                                }
+                            }, (error) => {
+                                cansel();
+                                alertText();
+                                console.log("Error getting location:", error);
+                            }, {
+                                enableHighAccuracy: true,
+                                timeout: 5000,
+                                maximumAge: 0
+                            }
+                        );
+                    } else {
+                        cansel();
+                    }
+
+                    /* 
+                    
+                        0, 0,  0 : 35.860550, 139.269142
+                        1, 0,  0 : 35.860467, 139.269696
+                    -1, 0,  0 : 35.860490, 139.268412
+
+                        0, 0,  1 : 35.860096, 139.269190
+                        0, 0, -1 : 35.860991, 139.269053
+
+                        ___
+
+                        0, 0,  0 :  0,         0
+                        1, 0,  0 : -0.000083,  0.000554
+                    -1, 0,  0 : -0.00006,  -0.00073
+
+                        0, 0,  1 : -0.000454,  0.000048
+                        0, 0, -1 :  0.000441, -0.000641
+
+                    敷地内 :
+                        35.862096, 139.269525
+                        35.859773, 139.266558
+                        35.858807, 139.269504
+                        35.860690, 139.271212
+                    */
+                });
+            } else {
+                button_currentPos.classList.add("invalid");
+            }
+
+            maps_buttons_right.appendChild(button_currentPos);
             maps_buttons_right.appendChild(button_dimension);
             maps_buttons_top.appendChild(compass);
         })();
