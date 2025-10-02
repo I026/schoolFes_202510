@@ -2886,24 +2886,28 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                             return pointInTriangle(point, quad[0], quad[1], quad[2]) || pointInTriangle(point, quad[0], quad[2], quad[3]);
                         }
                         
-                        function latlonToXYZ(baseLat, baseLon){
-                            const lat = baseLat - baseLocation[0];
-                            const lon = baseLon - baseLocation[1];
+                        function latlonToXYZ(lat, lon){
                             const M = [
-                                [866.69667299, 1236.85206018], // row for x
-                                [0.0, 0.0],                    // row for y
-                                [-2161.60126554, 20.85725703], // row for z
+                                [866.69667299, 1236.85206018],  // row for x
+                                [0.0, 0.0],                     // row for y
+                                [-2161.60126554, 20.85725703],  // row for z
                             ];
-                            const x = M[0][0]*lat + M[0][1]*lon;
-                            const y = M[1][0]*lat + M[1][1]*lon;
-                            const z = M[2][0]*lat + M[2][1]*lon;
+
+                            const x = M[0][0] * lat + M[0][1] * lon;
+                            const y = M[1][0] * lat + M[1][1] * lon;
+                            const z = M[2][0] * lat + M[2][1] * lon;
                             return { x, y, z };
                         }
 
                         geoWatchId = navigator.geolocation.watchPosition(
                             (position) => {
-                                const latitude  = position.coords.latitude;
-                                const longitude = position.coords.longitude;
+                                const debug = [
+                                    35.860791, 139.269382
+                                ];
+                                const latitude  = debug[0];
+                                const longitude = debug[1];
+                                // const latitude  = position.coords.latitude;
+                                // const longitude = position.coords.longitude;
 
                                 console.log("Updated location:", latitude, longitude);
 
@@ -2913,16 +2917,17 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                                     ])) {
 
                                         const pos = latlonToXYZ(latitude, longitude);
+                                        console.log(pos);
                                         currentLocationPointMesh.position.set(
-                                            pos.x,
-                                            0,
                                             pos.z,
+                                            0,
+                                            pos.x,
                                         );
                                         currentLocationPointMesh.material.opacity = 1;
                                         defaulText();
                                     } else {
-                                        cansel();
-                                        alertText(1);
+                                        // cansel();
+                                        // alertText(1);
                                     }
                                 } else {
                                     cansel();
