@@ -2284,16 +2284,20 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                                         .5 - labelXRatio,
                                         .5 - labelYRatio,
                                     ];
-                                    element.style.setProperty("--differenceDeg",`${Math.atan2(
-                                        difference[1],
-                                        difference[0],
-                                    ) * (180 / Math.PI)}deg`);
+                                    const differenceDeg = (() => {
+                                        const deg = Math.atan2(
+                                            difference[1],
+                                            difference[0],
+                                        ) * (180 / Math.PI);
+                                        return deg < 0 ? (deg + 360) : deg;
+                                    })();
+                                    element.style.setProperty("--differenceDeg",`${differenceDeg}deg`);
                                 } else {
                                     if (element.classList.contains("edge")) {
                                         element.classList.remove("edge");
                                     }
                                 }
-                                // element.style.setProperty("--camDistance", camDistance);
+                                updateLabelScale(element);
                             }
                         });
                     }
@@ -2311,6 +2315,8 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                         }
                     }
                     animate();
+
+                    updateLabelsPosition();
 
                     let deviceorientationHandler;
 
@@ -2449,6 +2455,8 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
 
                     let lastLabelUpdate = 0;
 
+                    let lastCamZoom;
+
                     let lastIsShow2DMap;
                     // パン操作時にモデルから離れすぎないように制限
                     maps_controls.addEventListener("change", () => {
@@ -2501,7 +2509,10 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                         mapsView.style.setProperty("--camPosZ", camPos.z);
                         mapsView.style.setProperty("--camZoom", maps_camera.zoom);
 
-                        if (now - lastLabelUpdate > labelAnimUpdateThresholdMs * 8) {
+                        if (
+                            (now - lastLabelUpdate > labelAnimUpdateThresholdMs * 15) ||
+                            lastCamZoom !== maps_camera.zoom
+                        ) {
                             lastLabelUpdate = now;
                             updateLabelsPosition();
 
@@ -2510,6 +2521,7 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
 
                             lastIsShow2DMap = isShow2DMap;
                         }
+                        lastCamZoom = maps_camera.zoom;
                     });
                 },
                 (xhr) => {
@@ -2860,7 +2872,7 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                             [35.862096, 139.269525],
                             [35.859773, 139.266558],
                             [35.858807, 139.269504],
-                            [35.860690, 139.271212]
+                            [35.860690, 139.271212],
                         ]) {
                         // 三角形内判定（バリセンター法）
                             function pointInTriangle(p, a, b, c) {

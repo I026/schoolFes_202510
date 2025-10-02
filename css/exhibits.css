@@ -904,9 +904,8 @@
     height: var(--arrowScale);
     box-shadow: 0 0 10px gray;
     background-color: rgba(211, 211, 211, .75);
-    /* position: relative; */
+    /* transition: transform .5s ease-in-out; */
     top: 1.5em;
-    /* background-color: transparent; */
     color: black;
 }
 .content.main .exhibits .tile .content .mapsView .labelsArea .mapsLabel.edge.edgeShow .arrow svg {
@@ -1057,7 +1056,7 @@
 .content.main .exhibits .tile .content .mapsView .labelsArea .mapsLabel img {
     height: 1em;
     width : 1em;
-    border-radius: 5px;
+    border-radius: .35em;
     font-size: 1.25em;
     object-fit: cover;
 }
@@ -1179,7 +1178,7 @@
 }
 .content.main .exhibits .tile .content .buttons.left span {
     font-size: .5em;
-    margin-bottom: .15em;
+    margin-bottom: .1em;
     margin-right: .1em;
 }
 .content.main .exhibits .tile .content .buttons.top {
