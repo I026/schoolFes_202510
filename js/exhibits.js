@@ -99,7 +99,7 @@ const exhibits = {
     },
 }
 
-const maps_pointIcon = '<img src="medias/images/mapPoint.svg"/>';
+const maps_pointIcon = "medias/images/mapPoint.svg";
 
 const maps_words = {
     Subjects: {
@@ -266,102 +266,102 @@ const maps_locations = {
             y: .5,
         },
     },
-    F1_Multipurpose: {
-        location: {
-            name: maps_locationNames.Multipurpose,
-        },
-    },
-    F1_Woodworking: {
-        location: {
-            name: maps_locationNames.Woodworking,
-        },
-    },
-    F1_Science_A: {
-        location: {
-            name: maps_locationNames.Science_A,
-        },
-    },
-    F1_Science_B: {
-        location: {
-            name: maps_locationNames.Science_B,
-        },
-    },
-    F1_Science_C: {
-        location: {
-            name: maps_locationNames.Science_C,
-        },
-    },
-    F1_Science_D: {
-        location: {
-            name: maps_locationNames.Science_D,
-        },
-    },
-    F1_Science_Preparation: {
-        location: {
-            name: maps_locationNames.Science_Preparation,
-        },
-    },
-    F1_Science_Laboratory: {
-        location: {
-            name: maps_locationNames.Science_Laboratory,
-        },
-    },
-    F2_SocialStudies_Laboratory: {
-        location: {
-            name: maps_locationNames.SocialStudies_Laboratory,
-        },
-    },
-    F2_English_Laboratory: {
-        location: {
-            name: maps_locationNames.English_Laboratory,
-        },
-    },
-    F2_Music_Small: {
-        location: {
-            name: maps_locationNames.Music_Small,
-        },
-    },
-    F2_Music_Large: {
-        location: {
-            name: maps_locationNames.Music_Large,
-        },
-    },
-    F2_Life_Laboratory: {
-        location: {
-            name: maps_locationNames.Life_Laboratory,
-        },
-    },
-    F2_Cooking: {
-        location: {
-            name: maps_locationNames.Cooking,
-        },
-    },
+    // F1_Multipurpose: {
+    //     location: {
+    //         name: maps_locationNames.Multipurpose,
+    //     },
+    // },
+    // F1_Woodworking: {
+    //     location: {
+    //         name: maps_locationNames.Woodworking,
+    //     },
+    // },
+    // F1_Science_A: {
+    //     location: {
+    //         name: maps_locationNames.Science_A,
+    //     },
+    // },
+    // F1_Science_B: {
+    //     location: {
+    //         name: maps_locationNames.Science_B,
+    //     },
+    // },
+    // F1_Science_C: {
+    //     location: {
+    //         name: maps_locationNames.Science_C,
+    //     },
+    // },
+    // F1_Science_D: {
+    //     location: {
+    //         name: maps_locationNames.Science_D,
+    //     },
+    // },
+    // F1_Science_Preparation: {
+    //     location: {
+    //         name: maps_locationNames.Science_Preparation,
+    //     },
+    // },
+    // F1_Science_Laboratory: {
+    //     location: {
+    //         name: maps_locationNames.Science_Laboratory,
+    //     },
+    // },
+    // F2_SocialStudies_Laboratory: {
+    //     location: {
+    //         name: maps_locationNames.SocialStudies_Laboratory,
+    //     },
+    // },
+    // F2_English_Laboratory: {
+    //     location: {
+    //         name: maps_locationNames.English_Laboratory,
+    //     },
+    // },
+    // F2_Music_Small: {
+    //     location: {
+    //         name: maps_locationNames.Music_Small,
+    //     },
+    // },
+    // F2_Music_Large: {
+    //     location: {
+    //         name: maps_locationNames.Music_Large,
+    //     },
+    // },
+    // F2_Life_Laboratory: {
+    //     location: {
+    //         name: maps_locationNames.Life_Laboratory,
+    //     },
+    // },
+    // F2_Cooking: {
+    //     location: {
+    //         name: maps_locationNames.Cooking,
+    //     },
+    // },
 
-    F3_Music_2: {
-        location: {
-            name: maps_locationNames.Music_2,
-        },
-    },
-    F3_Music_3: {
-        location: {
-            name: maps_locationNames.Music_3,
-        },
-    },
-    F3_Computers: {
-        location: {
-            name: maps_locationNames.Computers,
-        },
-    },
-    F3_Math_Laboratory: {
-        location: {
-            name: maps_locationNames.Math_Laboratory,
-        },
-    },
-    F3_Music_Laboratory: {
-        location: {
-            name: maps_locationNames.Music_Laboratory,
-        },
-    },
+    // F3_Music_2: {
+    //     location: {
+    //         name: maps_locationNames.Music_2,
+    //     },
+    // },
+    // F3_Music_3: {
+    //     location: {
+    //         name: maps_locationNames.Music_3,
+    //     },
+    // },
+    // F3_Computers: {
+    //     location: {
+    //         name: maps_locationNames.Computers,
+    //     },
+    // },
+    // F3_Math_Laboratory: {
+    //     location: {
+    //         name: maps_locationNames.Math_Laboratory,
+    //     },
+    // },
+    // F3_Music_Laboratory: {
+    //     location: {
+    //         name: maps_locationNames.Music_Laboratory,
+    //     },
+    // },
     BusStation_Base: {
         name: `${maps_locationNames.Bus}停`,
         description: `${maps_locationNames.Bus}ダイヤを見る`,
@@ -616,11 +616,11 @@ import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUti
 import { gsap } from "https://cdn.jsdelivr.net/npm/gsap@3.12.2/index.js";
 import { CSS2DRenderer, CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer.js";
 /**
- * @param {THREE.Object3D} target
- * @param {THREE.OrthographicCamera} camera
- * @param {THREE.OrbitControls} controls
- * @param {number} margin
- */
+* @param {THREE.Object3D} target
+* @param {THREE.OrthographicCamera} camera
+* @param {THREE.OrbitControls} controls
+* @param {number} margin
+*/
 
 // カメラ
 const maps_renderer = new THREE.WebGLRenderer({
@@ -886,14 +886,15 @@ for (let i = 0; i < exhibitsLength; i += 1) {
         barTabClick(1);
         Object.values(maps_locations).forEach((item, index) => {
             if (getExhibits(i)[1] === item) {
-                const targetObj = maps_modelParts[Object.keys(maps_locations)[index]];
-                maps_frameObject({
-                    target: targetObj,
+                const targetName = Object.keys(maps_locations)[index];
+                Object.keys(maps_modelParts).forEach(mesh => {
+                    removeLabel(mesh);
                 });
-                const targetLabel = maps_labelsArea.querySelector(`.mapsLabel[exhibits="${Object.keys(maps_locations)[index]}"]`);
-                targetLabel.classList.add("opened");
-                maps_addLabelTransition(targetLabel);
-                if (!get_isEveryFloorValid()) maps_changeFloor(maps_getFloor(targetObj.name));
+                pushLabel(targetName);
+                // const targetLabel = maps_labelsArea.querySelector(`.mapsLabel[exhibits="${Object.keys(maps_locations)[index]}"]`);
+                // targetLabel.classList.add("opened");
+                // maps_addLabelTransition(targetLabel);
+                // if (!get_isEveryFloorValid()) maps_changeFloor(maps_getFloor(targetObj.name));
             }
         });
     });
@@ -1339,6 +1340,103 @@ const truncateText = ({
 );
 const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSearchBarEl.value : "";
 
+let maps_model; // モデルを外で保持
+
+const getFmtedObjName = (name) => name.replace("F" + maps_getFloor(name) + "_", "");
+
+function pushLabel (targetName) {
+    maps_frameObject({
+        target: maps_modelParts[targetName]
+    });
+    function genNewLabel (locationName) {
+        const location = maps_locations[locationName];
+        const baseObject = maps_modelParts[locationName];
+        const label = d.createElement("div");
+        label.className = "mapsLabel";
+
+        function getNewElItem (text, className, pushed) {
+            if (text) {
+                const el = d.createElement("div");
+                el.textContent = text;
+                el.className = className;
+
+                if (pushed) {
+                    el.addEventListener("click", () => {
+                        pushed();
+                    });
+                }
+
+                return el;
+            } else {
+                return null;
+            }
+        }
+        
+        const informations = d.createElement("div");
+        informations.className = "informations";
+
+        const generateEls = [
+            getNewElItem(location.location?.name || null, "location"),
+            getNewElItem(location.description || null, "description"),
+            location?.tag ? getNewElItem("詳細を見る", "detail", () => {
+                barHeightUpdate(false);
+                const objName = getFmtedObjName(locationName);
+                if (maps_locations[objName]?.onClick) {
+                    maps_locations[objName].onClick();
+                } else {
+                    scrollToTile(objName);
+                }
+            }) : null,
+        ];
+        generateEls.forEach(el => {
+            if (el) informations?.appendChild(el);
+        });
+        label.appendChild(informations);
+
+        const labelObject = new CSS2DObject(label);
+        
+        const vector = new THREE.Vector3();
+        if (baseObject.geometry) {
+            baseObject.geometry.computeBoundingBox();
+            baseObject.geometry.boundingBox.getCenter(vector);
+
+            const offset = maps_locations[baseObject.name]?.offset;
+            vector.x += offset?.x || 0;
+            vector.y += offset?.y || 0;
+            vector.z += offset?.z || 0;
+
+            if (baseObject.userData?.originalTransform?.position) {
+                // モデル回転を考慮
+                const rotationMatrix = new THREE.Matrix4().makeRotationY(maps_model.rotation.y * -1);
+                vector.applyMatrix4(rotationMatrix);   
+                baseObject.localToWorld(vector);
+            }
+        }
+        labelObject.position.copy(vector);
+        baseObject.add(labelObject);
+
+        label.style.setProperty("--numOfEl", generateEls.length);
+    }
+    genNewLabel(targetName);
+}
+function removeLabel(meshName) {
+    const baseObject = maps_modelParts?.[meshName];
+    if (baseObject) {
+        const childs = [...baseObject.children];
+        childs.forEach(child => {
+            if (child.element) {
+                child.element.style.opacity = 0;
+                setTimeout(() => {
+                    // CSS2DObject の場合
+                    child.element.remove();
+                    // Three.js のオブジェクトからも削除
+                    baseObject.remove(child);
+                }, 1000);
+            }
+        });
+    }
+}
+
 (() => { // exhibitsBottomBar contents
     // listView
     const listView = d.createElement("div");
@@ -1429,16 +1527,6 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                 ];
                 sagestResults.push(sagestTexts);
                 const newSet = d.createElement("div");
-                newSet.addEventListener("click", e => {
-                    if (
-                        e.target === newSagest ||
-                        e.target === newExhibitName
-                    ) {
-                        searchBarsEl.classList.remove("opened");
-                        const targetEl = sortResult.elements[i];
-                        scrollToTile(targetEl);
-                    }
-                });
 
                 const newSagest = d.createElement("div");
                 newSagest.innerHTML = `<span>${
@@ -1456,10 +1544,21 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                 const newExhibitName = d.createElement("div");
                 newExhibitName.textContent = sortResult.exhibits[i].name;
                 newExhibitName.className = "exhibitName";
-                
+
                 sagestsEl.appendChild(newSet);
                 newSet.appendChild(newSagest);
                 newSet.appendChild(newExhibitName);
+
+                newSet.addEventListener("click", e => {
+                    if (
+                        newSagest.contains(e.target) ||
+                        newExhibitName.contains(e.target)
+                    ) {
+                        searchBarsEl.classList.remove("opened");
+                        const targetEl = sortResult.elements[i];
+                        scrollToTile(targetEl);
+                    }
+                });
             }
         });
         sagestsHeight = sagestsEl.clientHeight;
@@ -1494,7 +1593,7 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
     newSearchBarEl.addEventListener("blur", () => {
         setTimeout(() => {
             searchAreaEl.classList.remove("focus");
-        }, 100);
+        }, 400);
     });
     newSearchBarEl.addEventListener("scroll", searchBarScroll);
 
@@ -1695,7 +1794,6 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
 
         // 3Dモデル読み込み
         const loader = new GLTFLoader();
-        let model; // モデルを外で保持
         const currentLocationPointMesh = new THREE.Mesh(
             new THREE.BoxGeometry(
                 .01,
@@ -1704,19 +1802,17 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
             )
         );
 
-        const getFmtedObjName = (name) => name.replace("F" + maps_getFloor(name) + "_", "");
-
         loadModel = () => {
             loader.load(
                 "medias/3ds/sc.glb",
                 (gltf) => {
-                    model = gltf.scene;
+                    maps_model = gltf.scene;
 
-                    model.position.set(0, 0, 0);
-                    model.rotation.y = THREE.MathUtils.degToRad(135);
-                    scene.add(model);
+                    maps_model.position.set(0, 0, 0);
+                    maps_model.rotation.y = THREE.MathUtils.degToRad(135);
+                    scene.add(maps_model);
 
-                    model.add(currentLocationPointMesh);
+                    maps_model.add(currentLocationPointMesh);
                     currentLocationPointMesh.position.set(
                         0, 0, 0
                     );
@@ -1740,7 +1836,7 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                     maps_controls.screenSpacePanning = false;
 
                     const mergeObjs = [];
-                    model.traverse(child => {
+                    maps_model.traverse(child => {
                         // Skip adding objects with fully transparent materials or named "Transparent"
                         if (child.isMesh) {
                             // Check for "Transparent" material name or full opacity 0
@@ -1856,7 +1952,7 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                             mergedMesh.name = child.name;
 
                             // 元の位置情報を mergedMesh にもコピーしておく
-                            const rotationMatrix = new THREE.Matrix4().makeRotationY(model.rotation.y);
+                            const rotationMatrix = new THREE.Matrix4().makeRotationY(maps_model.rotation.y);
                             const originalPos = child.userData.originalTransform.position.clone();
                             const rotatedPos = originalPos.applyMatrix4(rotationMatrix);
 
@@ -1953,7 +2049,7 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                         ) {
                             const locationName = maps_locations[partName]?.location.name;
                             maps_locations[partName] = {
-                                name: '<img src="medias/images/wc.svg"/>',
+                                name: "medias/images/wc.svg",
                                 location: {
                                     name: locationName
                                 },
@@ -1963,129 +2059,218 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
 
                         if (!maps_locations[partName]) return;
 
-                        const label = document.createElement("div");
-                        label.className = `mapsLabel${maps_locations[partName].isAlwaysShow ? " alwaysShow" : ""}${maps_locations[partName].isEdgeShow ? " edgeShow" : ""}`;
-                        label.setAttribute("exhibits", partName);
+                        const canvas = d.createElement("canvas");
+                        const ctx = canvas.getContext("2d");
+                        const scaleFactor = Math.max(Math.min(window.innerWidth / 1250, 2), .5);
+                        const labelAspect = 4;
+                        canvas.width = 512 * labelAspect * scaleFactor;
+                        canvas.height = 512 * scaleFactor;
 
-                        if (maps_locations[partName]) {
-                            label.className = `mapsLabel${maps_locations[partName].isAlwaysShow ? " alwaysShow" : ""}${maps_locations[partName].isEdgeShow ? " edgeShow" : ""}`;
-                            label.setAttribute("exhibits", partName);
+                        // 背景を透明に初期化
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                            setTagAttributes(maps_locations[partName].tag, label);
+                        let text = maps_locations[partName]?.name || "";
+                        let isImage = false;
 
-                            if (!maps_locations[partName]?.name) maps_locations[partName].name = maps_pointIcon;
+                        // "/" を含み、かつ ".svg" が含まれる場合は画像扱いにする
+                        if (text.includes("/") && text.includes(".svg")) {
+                            isImage = true;
+                        }
 
-                            const getIsHTMLTag = (value) => value?.includes("<") ? true : false;
+                        const fontSize = scaleFactor * 220;
+                        let textHeight = fontSize;
+                        let textWidth  = fontSize;
 
-                            const titleText = getIsHTMLTag(maps_locations[partName]?.name) ? maps_locations[partName].name : truncateText({text: maps_locations[partName].name, length: 10});
-                            const descriptionText = maps_locations[partName]?.description;
-                            const locationText = maps_locations[partName]?.location?.name;
-                            const imgLink = maps_locations[partName]?.image;
-                            const detailTile = exhibitsArea.querySelector(`.tile[exhibits=${getFmtedObjName(partName)}]`);
-
-                            if (titleText) {
-                                const title = d.createElement("div");
-                                const text = d.createElement("span");
-                                text.innerHTML = titleText;
-                                title.className = `title${maps_locations[partName].emphasis ? " emphasis" : ""}`;
-                                title.appendChild(text);
-                                label.appendChild(title);
-                            }
-                            
-                            const informations = d.createElement("div");
-                            informations.className = "informations";
-                            label.appendChild(informations);
-
-                            if (locationText) {
-                                const location = d.createElement("span");
-                                location.innerHTML = locationText;
-                                location.className = "location";
-                                informations.appendChild(location);
-                            }
-                            
-                            if (descriptionText) {
-                                const detail = d.createElement("div");
-                                detail.innerHTML = descriptionText;
-                                detail.className = "detail button";
-                                if (detailTile || maps_locations[partName]?.onClick) {
-                                    detail.classList.add("pressable");
-                                    detail.addEventListener("click", e => {
-                                        e.preventDefault();
-                                        label.classList.remove("opened");
-                                        if (maps_locations[partName]?.onClick) {
-                                            maps_locations[partName].onClick();
-                                        } else if (detailTile) {
-                                            barHeightUpdate(false);
-                                            // openTile(detailTile, true);
-                                            scrollToTile(detailTile);
-                                        }
-                                    });
+                        if (isImage) {
+                            const img = new Image();
+                            img.src = text;
+                            img.onload = () => {
+                                const texture = new THREE.CanvasTexture(img);
+                                const spriteMaterial = new THREE.SpriteMaterial({
+                                    map: texture,
+                                    transparent: true,
+                                    depthTest: false
+                                });
+                                const sprite = new THREE.Sprite(spriteMaterial);
+                                sprite.renderOrder = 999;
+                                const imageScale = .03;
+                                sprite.scale.set(imageScale, imageScale, imageScale); // サイズ調整
+                                if (part.geometry) {
+                                    const center = new THREE.Vector3();
+                                    part.geometry.computeBoundingBox();
+                                    part.geometry.boundingBox.getCenter(center);
+                                    part.localToWorld(center);
+                                    sprite.position.copy(center);
                                 }
-                                informations.appendChild(detail);
+                                scene.add(sprite);
+                            };
+                        } else {
+                            // それ以外は従来のテキスト描画
+                            const text = maps_locations[partName]?.name || "";
+
+                            // テキストスタイル
+                            ctx.font = `${fontSize}px ${getComputedStyle(d.documentElement).getPropertyValue("--baseFonts") || "sans-serif"}`;
+                            ctx.textAlign = "center";
+                            ctx.textBaseline = "middle";
+
+                            // テキスト幅を測定
+                            textHeight = ctx.measureText(text).height;
+                            textWidth = ctx.measureText(text).width;
+
+                            function roundRect(ctx, x, y, width, height, radius) {
+                                if (typeof radius === "number") {
+                                    radius = { tl: radius, tr: radius, br: radius, bl: radius };
+                                } else {
+                                    const defaultRadius = { tl: 0, tr: 0, br: 0, bl: 0 };
+                                    for (let side in defaultRadius) {
+                                        radius[side] = radius[side] || defaultRadius[side];
+                                    }
+                                }
+                                ctx.beginPath();
+                                ctx.moveTo(x + radius.tl, y);
+                                ctx.lineTo(x + width - radius.tr, y);
+                                ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+                                ctx.lineTo(x + width, y + height - radius.br);
+                                ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+                                ctx.lineTo(x + radius.bl, y + height);
+                                ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+                                ctx.lineTo(x, y + radius.tl);
+                                ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+                                ctx.closePath();
+                                ctx.fill();
                             }
 
-                            if (imgLink) {
-                                const img = d.createElement("img");
-                                img.src = imgLink;
-                                informations.appendChild(img);
-                            }
+                            // テキスト背景を描画（灰色）
+                            ctx.fillStyle = "rgba(100, 100, 100, 0.8)";
+                            const textBoxMargin = scaleFactor * 80;
+                            roundRect(
+                                ctx,
+                                (canvas.width / 2 - textWidth / 2) - textBoxMargin,
+                                (canvas.height / 2 - fontSize / 2) - textBoxMargin * 1.25,
+                                textWidth + textBoxMargin * 2,
+                                fontSize + textBoxMargin * 2,
+                                textBoxMargin // 角丸の半径
+                            );
+
+                            // テキストを描画
+                            ctx.fillStyle = "black";
+                            ctx.fillText(text, canvas.width / 2, canvas.height / 2);
                         }
 
-                        (() => {
-                            const cancelBtn = d.createElement("div");
-                            cancelBtn.classList = "cancelBtn";
-                            for (let i = 0; i < 2; i += 1) {
-                                const bar = d.createElement("div");
-                                bar.className = "bar";
-                                bar.style.transform = `rotate(${45 + i * 90}deg)`;
-                                cancelBtn.appendChild(bar);
-                            }
-                            label.appendChild(cancelBtn);
+                        const texture = new THREE.CanvasTexture(canvas);
+                        const spriteMaterial = new THREE.SpriteMaterial({
+                            map: texture,
+                            transparent: true,
+                            depthTest: false
                         });
+                        const sprite = new THREE.Sprite(spriteMaterial);
 
-                        (() => {
-                            const arrowBox = d.createElement("div");
-                            arrowBox.classList = "arrow";
-
-                            const arrow = d.createElementNS("http://www.w3.org/2000/svg", "svg");
-                            arrow.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-
-                            const path = d.createElementNS("http://www.w3.org/2000/svg", "path");
-                            path.setAttribute("d", "M228.451,230.092L228.451,850.906L849.265,850.906");
-
-                            arrowBox.appendChild(arrow);
-                            arrow.appendChild(path);
-                            label.appendChild(arrowBox);
-                        })();
-
-                        const labelObject = new CSS2DObject(label);
-                        
-                        const vector = new THREE.Vector3();
+                        sprite.transparent = true;
+                        sprite.renderOrder = 999;
+                        const spriteScale = .2;
+                        sprite.scale.set(
+                            spriteScale,
+                            spriteScale / 4,
+                            spriteScale,
+                        ); // adjust label size
+                        // match position to geometry center like CSS2DObject
                         if (part.geometry) {
+                            const center = new THREE.Vector3();
                             part.geometry.computeBoundingBox();
-                            part.geometry.boundingBox.getCenter(vector);
-
-                            const offset = maps_locations[part.name]?.offset;
-                            vector.x += offset?.x || 0;
-                            vector.y += offset?.y || 0;
-                            vector.z += offset?.z || 0;
-
-                            if (part.userData?.originalTransform?.position) {
-                                // モデル回転を考慮
-                                const rotationMatrix = new THREE.Matrix4().makeRotationY(model.rotation.y * -1);
-                                vector.applyMatrix4(rotationMatrix);   
-                                part.localToWorld(vector);
-                            }
+                            part.geometry.boundingBox.getCenter(center);
+                            part.localToWorld(center);
+                            sprite.position.copy(center);
                         }
-                        labelObject.position.copy(vector);
-                        part.add(labelObject);
-
-                        maps_labels[partName] = { object: labelObject, element: label, part: part };
+                        sprite.name = partName + "_label";
+                        sprite.userData = {
+                            name: part.name
+                        };
+                        scene.add(sprite);
+                        // Save reference for later control
+                        maps_labels[partName] = { object: sprite, part: part };
                     });
 
+                    const raycaster = new THREE.Raycaster();
+                    const mouse = new THREE.Vector2();
+                    function onMouseClick (x, y) {
+                        // レンダラーのキャンバス領域に対する相対座標を使う
+                        const rect = maps_renderer.domElement.getBoundingClientRect();
+
+                        const canvasX = x - rect.left;
+                        const canvasY = y - rect.top;
+
+                        mouse.x = (canvasX / rect.width) * 2 - 1;
+                        mouse.y = - (canvasY / rect.height) * 2 + 1;
+
+                        // カメラの行列を最新化してからセット
+                        maps_camera.updateMatrixWorld();
+                        raycaster.setFromCamera(mouse, maps_camera);
+
+                        const clickableLabels = Object.values(maps_labels)
+                            .map(obj => obj.object)
+                            .filter(Boolean);
+
+                        const intersects = raycaster.intersectObjects(clickableLabels, true);
+
+                        Object.keys(maps_modelParts).forEach(mesh => {
+                            removeLabel(mesh);
+                        });
+                        if (intersects.length > 0) {
+                            // intersectObjects が返す object は子要素の場合があるので、Sprite を見つける
+                            let clicked = intersects[0].object;
+                            while (clicked && clicked.type !== "Sprite" && clicked.parent) { clicked = clicked.parent; }
+                            const location = maps_locations[clicked.userData.name];
+                            const isPusheable = (
+                                clicked.material.opacity !== 0 &&
+                                location?.name &&
+                                (location?.description || location?.location?.name)
+                            );
+                            if (isPusheable) {
+                                pushLabel(clicked.userData.name);
+                            }
+                        }
+                    }
+
                     (() => {
+                        let lastHandleEventAt;
+                        let startPos = [];
+                        function touchstart (x, y) {
+                            startPos = [x, y];
+                        }
+                        function touchend (x, y) {
+                            const touchThreshold = 50;
+                            if (
+                                ((Date.now() - lastHandleEventAt) > 500 || !lastHandleEventAt) &&
+                                (
+                                    Math.abs(startPos[0] - x) < touchThreshold &&
+                                    Math.abs(startPos[1] - y) < touchThreshold
+                                )
+                            ) {
+                                onMouseClick(x, y);
+                                lastHandleEventAt = Date.now();
+                            }
+                        }
+                        maps_renderer.domElement.addEventListener("touchstart", e => {
+                            const touch = e?.touches[0];
+                            if (touch) touchstart(touch.clientX, touch.clientY);
+                        });
+                        maps_renderer.domElement.addEventListener("touchend", e => {
+                            const touch = e?.touches[0];
+                            if (touch) touchend(touch.clientX, touch.clientY);
+                        });
+                        maps_renderer.domElement.addEventListener("mousedown", e => {
+                            touchstart(e.clientX, e.clientY);
+                        });
+                        maps_renderer.domElement.addEventListener("mouseup", e => {
+                            touchend(e.clientX, e.clientY);
+                        });
+                    })();
+
+
+                    (() => { // 無効化済み
+                        return;
                         function isOverlap(el, x, y) {
-                            const rect = el.getBoundingClientRect();
+                            const rect = el?.getBoundingClientRect() || 0;
                             return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
                         }
 
@@ -2166,7 +2351,7 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                             const touch = e.changedTouches[0];
                             handleEvent(touch.clientX, touch.clientY);
                         });
-                    })();
+                    });
 
                     const truncate = (num, digit = 3) => Math.floor(num * digit) / digit;
 
@@ -2223,30 +2408,41 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                     }
 
                     function updateLabelsPosition() {
-                        Object.values(maps_labels).forEach(({ element, part }, index) => {
+                        Object.values(maps_labels).forEach(({ object, part }, index) => {
                             // const objPos = part.userData?.originalTransform?.position.clone() || part.getWorldPosition(new THREE.Vector3());
                             // const camDistance = camPos.distanceTo(objPos);
 
                             const isAlwaysShow = maps_locations[part.name]?.isAlwaysShow || false;
 
                             if (
-                                (gsap.getProperty(Array.isArray(part.material) ? part.material[0] : part.material, "opacity") === 1 || isAlwaysShow)
+                                gsap.getProperty(Array.isArray(part.material) ? part.material[0] : part.material, "opacity") * 1 > .5 || isAlwaysShow
                             ) {
                                 if (getIsSortConforming(maps_locations[part.name], getSortConditions(), getSearchValue()).isConforming) {
-                                    if (element.classList.contains("invalid")) element.classList.remove("invalid");
-                                    element.style.setProperty("--labelOpacity", 1);
+                                    gsap.to(object.material, {
+                                        opacity: 1
+                                    });
+                                    // if (element.classList.contains("invalid")) element.classList.remove("invalid");
+                                    // element.style.setProperty("--labelOpacity", 1);
                                 } else {
+                                    gsap.to(object.material, {
+                                        opacity: .5
+                                    });
                                     // if (!element.classList.contains("invalid")) element.classList.add("invalid");
-                                    element.style.setProperty("--labelOpacity", .5);
+                                    // element.style.setProperty("--labelOpacity", .5);
                                 }
                             } else {
-                                if (!element.classList.contains("invalid")) element.classList.add("invalid");
-                                element.style.setProperty("--labelOpacity", 0);
+                                gsap.to(object.material, {
+                                    opacity: 0
+                                });
+                                // if (!element.classList.contains("invalid")) element.classList.add("invalid");
+                                // element.style.setProperty("--labelOpacity", 0);
                             }
 
-                            element.setAttribute("isPressable", (
-                                !element.classList.contains("invalid") && element.querySelector(".informations")?.innerHTML.length !== 0
-                            ));
+                            // element.setAttribute("isPressable", (
+                            //     !element.classList.contains("invalid") && element.querySelector(".informations")?.innerHTML.length !== 0
+                            // ));
+
+                            return;
 
                             if (element.getAttribute("isPressable") === "true" || (element.style.opacity !== 0 && element.visible)) {
                                 const updateRes = updateLabelScale(element);
@@ -2320,35 +2516,6 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
 
                     let deviceorientationHandler;
 
-                    function directionMatch () {
-                        let deviceHeading;
-                        deviceorientationHandler = (event) => {
-                            if (event.webkitCompassHeading !== undefined) {
-                                deviceHeading = event.webkitCompassHeading; // iOS Safari
-                            } else {
-                                // センサーが存在しない場合は処理しない
-                                return;
-                            }
-                            updateCameraAngle({
-                                horizontal: -deviceHeading,
-                                duration: 0
-                            });
-                        };
-
-                        if (typeof DeviceOrientationEvent.requestPermission === "function") {
-                            DeviceOrientationEvent.requestPermission()
-                            .then(response => {
-                                if (response === "granted") {
-                                    window.addEventListener("deviceorientation", deviceorientationHandler);
-                                }
-                            })
-                            .catch(console.error);
-                        } else {
-                            // Androidや古いiOS
-                            window.addEventListener("deviceorientation", deviceorientationHandler);
-                        }
-                    };
-
                     function removeDirectionMatch () {
                         window.removeEventListener("deviceorientation", deviceorientationHandler);
                     }
@@ -2356,6 +2523,7 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                     mapsView.addEventListener("mousedown", removeDirectionMatch);
 
                     (() => { // 無効化済み
+                        return;
                         const generateTouches = (e) => e ? [e?.clientX || e.touches[0]?.clientX, e?.clientY || e.touches[0]?.clientY] : [null, null];
 
                         let isNowBarTouch = false;
@@ -2510,7 +2678,7 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                         mapsView.style.setProperty("--camZoom", maps_camera.zoom);
 
                         if (
-                            (now - lastLabelUpdate > labelAnimUpdateThresholdMs * 15) ||
+                            (now - lastLabelUpdate > labelAnimUpdateThresholdMs * 30) ||
                             lastCamZoom !== maps_camera.zoom
                         ) {
                             lastLabelUpdate = now;
@@ -2535,7 +2703,7 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
         };
         loadModel();
 
-        let labelAnimUpdateThresholdMs;
+        const labelAnimUpdateThresholdMs = 35;
 
         let barTopMargin;
 
@@ -2557,13 +2725,6 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
             maps_renderer.setSize(mapsView.clientWidth, mapsView.clientHeight + barTopMargin);
             maps_labelRenderer.setSize(mapsView.clientWidth, mapsView.clientHeight + barTopMargin);
             maps_labelsArea.style.top = 0;
-
-            labelAnimUpdateThresholdMs = Math.max(
-                Math.min(
-                    (4 - maps_camera.zoom) * 10, 80
-                ),
-                10
-            );
 
             barHeightUpdate();
         }
@@ -2864,15 +3025,14 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                     button_currentPos.classList.toggle("pushed");
                     if (button_currentPos.classList.contains("pushed")) {
                         const baseLocation = [ // 0, 0, 0に対応する場所
-                            35.860550,
-                            139.269142
+                            35.860550, 139.269142
                         ];
 
                         function isPointInArea(point, quad = [
-                            [35.862096, 139.269525],
-                            [35.859773, 139.266558],
-                            [35.858807, 139.269504],
-                            [35.860690, 139.271212],
+                            [35.860508, 139.267363],
+                            [35.862815, 139.270346],
+                            [35.861254, 139.272300],
+                            [35.859430, 139.268763],
                         ]) {
                         // 三角形内判定（バリセンター法）
                             function pointInTriangle(p, a, b, c) {
@@ -2885,73 +3045,123 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
                             // 四角形を2つの三角形に分けて判定
                             return pointInTriangle(point, quad[0], quad[1], quad[2]) || pointInTriangle(point, quad[0], quad[2], quad[3]);
                         }
-                        
-                        function latlonToXYZ(lat, lon){
-                            const M = [
-                                [866.69667299, 1236.85206018],  // row for x
-                                [0.0, 0.0],                     // row for y
-                                [-2161.60126554, 20.85725703],  // row for z
-                            ];
 
-                            const x = M[0][0] * lat + M[0][1] * lon;
-                            const y = M[1][0] * lat + M[1][1] * lon;
-                            const z = M[2][0] * lat + M[2][1] * lon;
-                            return { x, y, z };
+                        function rotatePointDeg(x, y, angleDeg, cx = 0, cy = 0) {
+                            const rad = angleDeg * Math.PI / 180;
+                            const c = Math.cos(rad);
+                            const s = Math.sin(rad);
+
+                            // 中心を原点に平行移動して回転、戻す
+                            const tx = x - cx;
+                            const ty = y - cy;
+                            const xr = tx * c - ty * s + cx;
+                            const yr = tx * s + ty * c + cy;
+                            return [xr, yr];
                         }
 
-                        geoWatchId = navigator.geolocation.watchPosition(
-                            (position) => {
-                                const debug = [
-                                    35.860791, 139.269382
-                                ];
-                                const latitude  = debug[0];
-                                const longitude = debug[1];
-                                // const latitude  = position.coords.latitude;
-                                // const longitude = position.coords.longitude;
+                        function latlonToXYZ(baseLat, baseLon) {
+                            const rotated = rotatePointDeg(
+                                baseLocation[0] - baseLat,
+                                baseLocation[1] - baseLon,
+                                44
+                            );
+                            const lat = rotated[1] * -10000 / (rotated[1] > 0 ? 6.3 : 4.7);
+                            const lon = rotated[0] * -10000 / 6;
 
-                                console.log("Updated location:", latitude, longitude);
+                            console.log(
+                                
+                            );
 
-                                if (latitude && longitude) {
-                                    if (isPointInArea([
-                                        latitude, longitude
-                                    ])) {
+                            return {
+                                x: lon,
+                                y: 0,
+                                z: lat,
+                            };
+                        }
 
-                                        const pos = latlonToXYZ(latitude, longitude);
-                                        console.log(pos);
-                                        currentLocationPointMesh.position.set(
-                                            pos.z,
-                                            0,
-                                            pos.x,
-                                        );
-                                        currentLocationPointMesh.material.opacity = 1;
-                                        defaulText();
+                        if (false) { // debug = true
+                            const pos = latlonToXYZ(
+                                35.860346, 139.268930
+                            );
+                            currentLocationPointMesh.position.set(
+                                pos.x,
+                                pos.y,
+                                pos.z,
+                                // 0,
+                                // 0,
+                                // 1,
+                            );
+                            currentLocationPointMesh.material.opacity = 1;
+                        } else {
+                            geoWatchId = navigator.geolocation.watchPosition(
+                                (position) => {
+                                    const debug = [
+                                        35.860847, 139.269506
+                                    ];
+                                    // const latitude  = debug[0];
+                                    // const longitude = debug[1];
+                                    const latitude  = position.coords.latitude;
+                                    const longitude = position.coords.longitude;
+
+                                    if (latitude && longitude) {
+                                        if (isPointInArea([
+                                            latitude, longitude
+                                        ])) {
+                                            const pos = latlonToXYZ(latitude, longitude);
+                                            console.log(
+                                                "latlon : ", latitude + ", " + longitude,
+                                                "pos : ", pos
+                                            );
+                                            currentLocationPointMesh.position.set(
+                                                pos.x,
+                                                pos.y,
+                                                pos.z,
+                                            );
+                                            currentLocationPointMesh.material.opacity = 1;
+                                            defaulText();
+                                        } else {
+                                            cansel();
+                                            alertText(1);
+                                        }
                                     } else {
-                                        // cansel();
-                                        // alertText(1);
+                                        cansel();
+                                        alertText(0);
                                     }
-                                } else {
+                                }, (error) => {
                                     cansel();
                                     alertText(0);
+                                    console.log("Error getting location:", error);
+                                }, {
+                                    enableHighAccuracy: true,
+                                    timeout: 5000,
+                                    maximumAge: 0
                                 }
-                            }, (error) => {
-                                cansel();
-                                alertText(0);
-                                console.log("Error getting location:", error);
-                            }, {
-                                enableHighAccuracy: true,
-                                timeout: 5000,
-                                maximumAge: 0
-                            }
-                        );
+                            );
+                        }
                     } else {
                         cansel();
                     }
 
                     /* 
+                        [[0, 0, 0] , [35.860563, 139.269066]],
+                        [[1, 0, 0] , [35.860885, 139.268676]],
+                        [[-1, 0, 0], [35.860223, 139.269531]],
+                        [[0, 0, 1] , [35.860821, 139.269523]],
+                        [[0, 0, -1], [35.860181, 139.268701]],
+                        [[1, 0, 1], [35.861312, 139.268994]],
+                        [[1, 0, -1], [35.860616, 139.268268]],
+                        [[-1, 0, 1], [35.860484, 139.269955]],
+                        [[-1, 0, -1], [35.859870, 139.269138]],
+                        [[.5, 0, 0], [35.860700, 139.268877]],
+                        [[-.5, 0, 0], [35.860403, 139.269322]],
+                        [[0, 0, .5], [35.860716, 139.269328]],
+                        [[0, 0, -.5], [35.860381, 139.268893]],
                     
+                        ___
+
                         0, 0,  0 : 35.860550, 139.269142
                         1, 0,  0 : 35.860467, 139.269696
-                    -1, 0,  0 : 35.860490, 139.268412
+                       -1, 0,  0 : 35.860490, 139.268412
 
                         0, 0,  1 : 35.860096, 139.269190
                         0, 0, -1 : 35.860991, 139.269053
@@ -2960,16 +3170,16 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
 
                         0, 0,  0 :  0,         0
                         1, 0,  0 : -0.000083,  0.000554
-                    -1, 0,  0 : -0.00006,  -0.00073
+                       -1, 0,  0 : -0.00006,  -0.00073
 
                         0, 0,  1 : -0.000454,  0.000048
                         0, 0, -1 :  0.000441, -0.000641
 
                     敷地内 :
-                        35.862096, 139.269525
-                        35.859773, 139.266558
-                        35.858807, 139.269504
-                        35.860690, 139.271212
+                        35.860508, 139.267363
+                        35.862815, 139.270346
+                        35.861254, 139.272300
+                        35.859430, 139.268763
                     */
                 });
             } else {
