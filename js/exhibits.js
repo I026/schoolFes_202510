@@ -173,7 +173,7 @@ const maps_locations = {
     Dining_Roof: {
         name: maps_locationNames.Dining,
         offset: {
-            y: .2,
+            y: .05,
         },
         description: `${maps_locationNames.Dining}のメニュー`,
         onClick: () => {
@@ -253,9 +253,6 @@ const maps_locations = {
     F1_Certificate_Table: {
         name: maps_pointIcon,
         description: "金券",
-        offset: {
-            y: 0,
-        },
     },
     F1_Gym_Entrance: {
         name: maps_locationNames.Gym,
@@ -263,7 +260,7 @@ const maps_locations = {
     F1_F2_Art: {
         name: maps_locationNames.Art,
         offset: {
-            y: .5,
+            y: .1,
         },
     },
     // F1_Multipurpose: {
@@ -1341,81 +1338,89 @@ const getSearchValue = () => searchAreaEl.classList.contains("opened") ? newSear
 let maps_model; // モデルを外で保持
 
 const getFmtedObjName = (name) => name.replace("F" + maps_getFloor(name) + "_", "");
+const getIsImageUrl = (text) => text.includes("/") && (text.includes(".svg") || text.includes(".png"));
 
 function pushLabel (targetName) {
-    maps_frameObject({
-        target: maps_modelParts[targetName]
-    });
-    function genNewLabel (locationName) {
-        const location = maps_locations[locationName];
-        const baseObject = maps_modelParts[locationName];
-        const label = d.createElement("div");
-        label.className = "mapsLabel";
+    const location = maps_locations[targetName];
+    const baseObject = maps_modelParts[targetName];
+    const label = d.createElement("div");
+    label.className = "mapsLabel";
 
-        function getNewElItem (text, className, pushed) {
-            if (text) {
-                const el = d.createElement("div");
-                el.textContent = text;
-                el.className = className;
-
-                if (pushed) {
-                    el.addEventListener("click", () => {
-                        pushed();
-                    });
-                }
-
-                return el;
+    function getNewElItem (text, className, pushed) {
+        if (text) {
+            const el = d.createElement("div");
+            if (getIsImageUrl(text)) {
+                const imgEl = d.createElement("img");
+                imgEl.src = text;
+                el.appendChild(imgEl);
             } else {
-                return null;
+                el.textContent = text;
             }
-        }
-        
-        const informations = d.createElement("div");
-        informations.className = "informations";
+            el.className = className;
 
-        const generateEls = [
-            getNewElItem(location.location?.name || null, "location"),
-            getNewElItem(location.description || null, "description"),
-            location?.tag ? getNewElItem("詳細を見る", "detail", () => {
-                barHeightUpdate(false);
-                const objName = getFmtedObjName(locationName);
-                if (maps_locations[objName]?.onClick) {
-                    maps_locations[objName].onClick();
-                } else {
-                    scrollToTile(objName);
-                }
-            }) : null,
-        ];
-        generateEls.forEach(el => {
-            if (el) informations?.appendChild(el);
-        });
-        label.appendChild(informations);
-
-        const labelObject = new CSS2DObject(label);
-        
-        const vector = new THREE.Vector3();
-        if (baseObject.geometry) {
-            baseObject.geometry.computeBoundingBox();
-            baseObject.geometry.boundingBox.getCenter(vector);
-
-            const offset = maps_locations[baseObject.name]?.offset;
-            vector.x += offset?.x || 0;
-            vector.y += offset?.y || 0;
-            vector.z += offset?.z || 0;
-
-            if (baseObject.userData?.originalTransform?.position) {
-                // モデル回転を考慮
-                const rotationMatrix = new THREE.Matrix4().makeRotationY(maps_model.rotation.y * -1);
-                vector.applyMatrix4(rotationMatrix);   
-                baseObject.localToWorld(vector);
+            if (pushed) {
+                el.addEventListener("click", () => {
+                    pushed();
+                });
             }
+            return el;
+        } else {
+            return null;
         }
-        labelObject.position.copy(vector);
-        baseObject.add(labelObject);
-
-        label.style.setProperty("--numOfEl", generateEls.length);
     }
-    genNewLabel(targetName);
+    
+    const informations = d.createElement("div");
+    informations.className = "informations";
+
+    const generateEls = [
+        getNewElItem(location.location?.name || null, "location"),
+        getNewElItem(location.description || null, "description"),
+        location?.tag ? getNewElItem("詳細を見る", "detail", () => {
+            barHeightUpdate(false);
+            const objName = getFmtedObjName(targetName);
+            if (maps_locations[objName]?.onClick) {
+                maps_locations[objName].onClick();
+            } else {
+                scrollToTile(objName);
+            }
+        }) : null,
+        getNewElItem(location?.image, "detail"),
+    ];
+    generateEls.forEach(el => {
+        if (el) informations?.appendChild(el);
+    });
+    label.appendChild(informations);
+
+    const labelObject = new CSS2DObject(label);
+    
+    const vector = new THREE.Vector3();
+    if (baseObject.geometry) {
+        baseObject.geometry.computeBoundingBox();
+        baseObject.geometry.boundingBox.getCenter(vector);
+
+        const offset = maps_locations[baseObject.name]?.offset;
+        vector.x += offset?.x || 0;
+        vector.y += offset?.y || 0;
+        vector.z += offset?.z || 0;
+
+        if (baseObject.userData?.originalTransform?.position) {
+            // モデル回転を考慮
+            const rotationMatrix = new THREE.Matrix4().makeRotationY(maps_model.rotation.y * -1);
+            vector.applyMatrix4(rotationMatrix);   
+            baseObject.localToWorld(vector);
+        }
+    }
+    labelObject.position.copy(vector);
+    baseObject.add(labelObject);
+
+    label.style.setProperty("--numOfEl", generateEls.length);
+
+    setTimeout(() => {
+        maps_frameObject({
+            target: maps_modelParts[targetName],
+            offsetZ: informations.offsetHeight * -.002,
+        });
+    }, 50);
 }
 function removeLabel(meshName) {
     const baseObject = maps_modelParts?.[meshName];
@@ -2065,7 +2070,6 @@ function removeAllLabel () {
                         const canvas = d.createElement("canvas");
                         const ctx = canvas.getContext("2d");
                         const scaleFactor = Math.max(Math.min(window.innerWidth / 1250, 2), .5);
-                        const labelAspect = 2;
 
                         function drawLabelText () {
                             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -2080,7 +2084,7 @@ function removeAllLabel () {
                             const textBoxMargin = scaleFactor * 80;
 
                             // 背景（角丸）
-                            ctx.fillStyle = "rgba(100, 100, 100, 0.8)";
+                            ctx.fillStyle = "rgba(45, 45, 45, 0.8)";
 
                             function roundRect(ctx, x, y, width, height, radius) {
                                 if (typeof radius === "number") {
@@ -2115,20 +2119,20 @@ function removeAllLabel () {
                             );
 
                             // テキスト
-                            ctx.fillStyle = "black";
+                            ctx.fillStyle = "white";
                             ctx.fillText(text, canvas.width / 2, canvas.height / 2);
                         }
 
                         function resizeLabelCanvas ({
-                            newWidth: newWidth,
-                            newHeight: newHeight,
+                            width: newWidth,
+                            height: newHeight,
                             sprite: sprite,
                         }) {
                             canvas.width = 512 * scaleFactor * newWidth;
                             canvas.height = 512 * scaleFactor * newHeight;
                             ctx.clearRect(0, 0, canvas.width, canvas.height);
                             drawLabelText(); // ← 背景と文字を再描画
-                            if (sprite.material.map instanceof THREE.CanvasTexture) {   
+                            if (sprite && sprite.material.map instanceof THREE.CanvasTexture) {   
                                 sprite.material.map.needsUpdate = true;
                             }
                         }
@@ -2137,18 +2141,13 @@ function removeAllLabel () {
                         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
                         let text = maps_locations[partName]?.name || "";
-                        let isImage = false;
-
-                        // "/" を含み、かつ ".svg" が含まれる場合は画像扱いにする
-                        if (text.includes("/") && text.includes(".svg")) {
-                            isImage = true;
-                        }
+                        const isImage = getIsImageUrl(text);
 
                         const fontSize = scaleFactor * 220;
                         let textHeight = fontSize;
                         let textWidth  = fontSize;
 
-                        function add({
+                        function add ({
                             width: width,
                             height: height,
                             spriteToAdd: spriteToAdd,
@@ -2164,7 +2163,7 @@ function removeAllLabel () {
                                 return new THREE.Sprite(spriteMaterial);
                             })();
 
-                            const baseScale = .45;
+                            const baseScale = .2;
                             let scaleRatio = [
                                 baseScale * width,
                                 baseScale * height,
@@ -2197,6 +2196,12 @@ function removeAllLabel () {
                                 part.geometry.boundingBox.getCenter(center);
                                 part.localToWorld(center);
                                 sprite.position.copy(center);
+                                if (maps_locations[part.name]?.offset?.y) {
+                                    const offset = maps_locations[part.name]?.offset;
+                                    sprite.position.x += offset.x || 0;
+                                    sprite.position.y += offset.y || 0;
+                                    sprite.position.z += offset.z || 0;
+                                }
                             }
                             sprite.name = partName + "_label";
                             sprite.userData = {
@@ -2250,7 +2255,7 @@ function removeAllLabel () {
                             textWidth = ctx.measureText(text).width;
 
                             add({
-                                width: 1,
+                                width: textWidth / textHeight,
                                 height: 1,
                             });
                         }
@@ -2280,18 +2285,22 @@ function removeAllLabel () {
 
                         removeAllLabel();
                         if (intersects.length > 0) {
-                            // intersectObjects が返す object は子要素の場合があるので、Sprite を見つける
-                            let clicked = intersects[0].object;
-                            while (clicked && clicked.type !== "Sprite" && clicked.parent) { clicked = clicked.parent; }
-                            const location = maps_locations[clicked.userData.name];
-                            const isPusheable = (
-                                clicked.material.opacity !== 0 &&
-                                location?.name &&
-                                (location?.description || location?.location?.name)
-                            );
-                            if (isPusheable) {
-                                pushLabel(clicked.userData.name);
+                            let clicked = (() => {
+                                for (const intersect of intersects) {
+                                    const clicked = intersect.object;
+                                    const location = maps_locations[clicked.userData.name];
+                                    const isPusheable = (
+                                        clicked.material.opacity !== 0 &&
+                                        location?.name &&
+                                        (location?.description || location?.location?.name)
+                                    );
+                                    if (isPusheable) return clicked;
+                                }
+                            })();
+                            while (clicked && clicked.type !== "Sprite" && clicked.parent) {
+                                clicked = clicked.parent;
                             }
+                            if (clicked) pushLabel(clicked.userData.name);
                         }
                     }
 
