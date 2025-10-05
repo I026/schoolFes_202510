@@ -887,9 +887,7 @@ for (let i = 0; i < exhibitsLength; i += 1) {
         Object.values(maps_locations).forEach((item, index) => {
             if (getExhibits(i)[1] === item) {
                 const targetName = Object.keys(maps_locations)[index];
-                Object.keys(maps_modelParts).forEach(mesh => {
-                    removeLabel(mesh);
-                });
+                removeAllLabel();
                 pushLabel(targetName);
                 // const targetLabel = maps_labelsArea.querySelector(`.mapsLabel[exhibits="${Object.keys(maps_locations)[index]}"]`);
                 // targetLabel.classList.add("opened");
@@ -1435,6 +1433,11 @@ function removeLabel(meshName) {
             }
         });
     }
+}
+function removeAllLabel () {
+    Object.keys(maps_modelParts).forEach(mesh => {
+        removeLabel(mesh);
+    });
 }
 
 (() => { // exhibitsBottomBar contents
@@ -2062,60 +2065,22 @@ function removeLabel(meshName) {
                         const canvas = d.createElement("canvas");
                         const ctx = canvas.getContext("2d");
                         const scaleFactor = Math.max(Math.min(window.innerWidth / 1250, 2), .5);
-                        const labelAspect = 4;
-                        canvas.width = 512 * labelAspect * scaleFactor;
-                        canvas.height = 512 * scaleFactor;
+                        const labelAspect = 2;
 
-                        // 背景を透明に初期化
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        function drawLabelText () {
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                        let text = maps_locations[partName]?.name || "";
-                        let isImage = false;
-
-                        // "/" を含み、かつ ".svg" が含まれる場合は画像扱いにする
-                        if (text.includes("/") && text.includes(".svg")) {
-                            isImage = true;
-                        }
-
-                        const fontSize = scaleFactor * 220;
-                        let textHeight = fontSize;
-                        let textWidth  = fontSize;
-
-                        if (isImage) {
-                            const img = new Image();
-                            img.src = text;
-                            img.onload = () => {
-                                const texture = new THREE.CanvasTexture(img);
-                                const spriteMaterial = new THREE.SpriteMaterial({
-                                    map: texture,
-                                    transparent: true,
-                                    depthTest: false
-                                });
-                                const sprite = new THREE.Sprite(spriteMaterial);
-                                sprite.renderOrder = 999;
-                                const imageScale = .03;
-                                sprite.scale.set(imageScale, imageScale, imageScale); // サイズ調整
-                                if (part.geometry) {
-                                    const center = new THREE.Vector3();
-                                    part.geometry.computeBoundingBox();
-                                    part.geometry.boundingBox.getCenter(center);
-                                    part.localToWorld(center);
-                                    sprite.position.copy(center);
-                                }
-                                scene.add(sprite);
-                            };
-                        } else {
-                            // それ以外は従来のテキスト描画
                             const text = maps_locations[partName]?.name || "";
-
-                            // テキストスタイル
+                            const fontSize = scaleFactor * 220;
                             ctx.font = `${fontSize}px ${getComputedStyle(d.documentElement).getPropertyValue("--baseFonts") || "sans-serif"}`;
                             ctx.textAlign = "center";
                             ctx.textBaseline = "middle";
 
-                            // テキスト幅を測定
-                            textHeight = ctx.measureText(text).height;
-                            textWidth = ctx.measureText(text).width;
+                            const textWidth = ctx.measureText(text).width;
+                            const textBoxMargin = scaleFactor * 80;
+
+                            // 背景（角丸）
+                            ctx.fillStyle = "rgba(100, 100, 100, 0.8)";
 
                             function roundRect(ctx, x, y, width, height, radius) {
                                 if (typeof radius === "number") {
@@ -2140,54 +2105,155 @@ function removeLabel(meshName) {
                                 ctx.fill();
                             }
 
-                            // テキスト背景を描画（灰色）
-                            ctx.fillStyle = "rgba(100, 100, 100, 0.8)";
-                            const textBoxMargin = scaleFactor * 80;
                             roundRect(
                                 ctx,
                                 (canvas.width / 2 - textWidth / 2) - textBoxMargin,
                                 (canvas.height / 2 - fontSize / 2) - textBoxMargin * 1.25,
                                 textWidth + textBoxMargin * 2,
                                 fontSize + textBoxMargin * 2,
-                                textBoxMargin // 角丸の半径
+                                textBoxMargin
                             );
 
-                            // テキストを描画
+                            // テキスト
                             ctx.fillStyle = "black";
                             ctx.fillText(text, canvas.width / 2, canvas.height / 2);
                         }
 
-                        const texture = new THREE.CanvasTexture(canvas);
-                        const spriteMaterial = new THREE.SpriteMaterial({
-                            map: texture,
-                            transparent: true,
-                            depthTest: false
-                        });
-                        const sprite = new THREE.Sprite(spriteMaterial);
-
-                        sprite.transparent = true;
-                        sprite.renderOrder = 999;
-                        const spriteScale = .2;
-                        sprite.scale.set(
-                            spriteScale,
-                            spriteScale / 4,
-                            spriteScale,
-                        ); // adjust label size
-                        // match position to geometry center like CSS2DObject
-                        if (part.geometry) {
-                            const center = new THREE.Vector3();
-                            part.geometry.computeBoundingBox();
-                            part.geometry.boundingBox.getCenter(center);
-                            part.localToWorld(center);
-                            sprite.position.copy(center);
+                        function resizeLabelCanvas ({
+                            newWidth: newWidth,
+                            newHeight: newHeight,
+                            sprite: sprite,
+                        }) {
+                            canvas.width = 512 * scaleFactor * newWidth;
+                            canvas.height = 512 * scaleFactor * newHeight;
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                            drawLabelText(); // ← 背景と文字を再描画
+                            if (sprite.material.map instanceof THREE.CanvasTexture) {   
+                                sprite.material.map.needsUpdate = true;
+                            }
                         }
-                        sprite.name = partName + "_label";
-                        sprite.userData = {
-                            name: part.name
-                        };
-                        scene.add(sprite);
-                        // Save reference for later control
-                        maps_labels[partName] = { object: sprite, part: part };
+
+                        // 背景を透明に初期化
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                        let text = maps_locations[partName]?.name || "";
+                        let isImage = false;
+
+                        // "/" を含み、かつ ".svg" が含まれる場合は画像扱いにする
+                        if (text.includes("/") && text.includes(".svg")) {
+                            isImage = true;
+                        }
+
+                        const fontSize = scaleFactor * 220;
+                        let textHeight = fontSize;
+                        let textWidth  = fontSize;
+
+                        function add({
+                            width: width,
+                            height: height,
+                            spriteToAdd: spriteToAdd,
+                        }) {
+                            const sprite = spriteToAdd || (() => {
+                                const texture = new THREE.CanvasTexture(canvas);
+                                texture.needsUpdate = true;
+                                const spriteMaterial = new THREE.SpriteMaterial({
+                                    map: texture,
+                                    transparent: true,
+                                    depthTest: false
+                                });
+                                return new THREE.Sprite(spriteMaterial);
+                            })();
+
+                            const baseScale = .45;
+                            let scaleRatio = [
+                                baseScale * width,
+                                baseScale * height,
+                            ];
+                            if (spriteToAdd) {
+                                const baseScale = .15;
+                                scaleRatio = [
+                                    baseScale,
+                                    baseScale,
+                                ];
+                            }
+                            resizeLabelCanvas({
+                                width: width || 1,
+                                height: height || 1,
+                                sprite: sprite
+                            });
+
+                            sprite.transparent = true;
+                            sprite.renderOrder = 999;
+                            const spriteScale = .2;
+                            sprite.scale.set(
+                                spriteScale * scaleRatio[0],
+                                spriteScale * scaleRatio[1],
+                                spriteScale,
+                            ); // adjust label size
+                            // match position to geometry center like CSS2DObject
+                            if (part.geometry) {
+                                const center = new THREE.Vector3();
+                                part.geometry.computeBoundingBox();
+                                part.geometry.boundingBox.getCenter(center);
+                                part.localToWorld(center);
+                                sprite.position.copy(center);
+                            }
+                            sprite.name = partName + "_label";
+                            sprite.userData = {
+                                name: part.name
+                            };
+                            scene.add(sprite);
+                            // Save reference for later control
+                            maps_labels[partName] = {
+                                object: sprite,
+                                part: part
+                            };
+                        }
+
+                        if (isImage) {
+                            const img = new Image();
+                            img.src = text;
+                            img.onload = () => {
+                                const texture = new THREE.CanvasTexture(img);
+                                const spriteMaterial = new THREE.SpriteMaterial({
+                                    map: texture,
+                                    transparent: true,
+                                    depthTest: false
+                                });
+                                const sprite = new THREE.Sprite(spriteMaterial);
+                                sprite.renderOrder = 999;
+                                const imageScale = .03;
+                                sprite.scale.set(imageScale, imageScale, imageScale); // サイズ調整
+                                if (part.geometry) {
+                                    const center = new THREE.Vector3();
+                                    part.geometry.computeBoundingBox();
+                                    part.geometry.boundingBox.getCenter(center);
+                                    part.localToWorld(center);
+                                    sprite.position.copy(center);
+                                }
+                                add({
+                                    width: 1,
+                                    height: 1,
+                                    spriteToAdd: sprite,
+                                });
+                            };
+                        } else {
+                            // それ以外は従来のテキスト描画
+                            const text = maps_locations[partName]?.name || "";
+
+                            // テキストスタイル
+                            ctx.font = `${fontSize}px ${getComputedStyle(d.documentElement).getPropertyValue("--baseFonts") || "sans-serif"}`;
+                            ctx.textAlign = "center";
+                            ctx.textBaseline = "middle";
+
+                            // テキスト幅を測定
+                            textWidth = ctx.measureText(text).width;
+
+                            add({
+                                width: 1,
+                                height: 1,
+                            });
+                        }
                     });
 
                     const raycaster = new THREE.Raycaster();
@@ -2212,9 +2278,7 @@ function removeLabel(meshName) {
 
                         const intersects = raycaster.intersectObjects(clickableLabels, true);
 
-                        Object.keys(maps_modelParts).forEach(mesh => {
-                            removeLabel(mesh);
-                        });
+                        removeAllLabel();
                         if (intersects.length > 0) {
                             // intersectObjects が返す object は子要素の場合があるので、Sprite を見つける
                             let clicked = intersects[0].object;
@@ -2881,6 +2945,7 @@ function removeLabel(meshName) {
             const bottomStereotypedText = "階を表示中";
 
             button.addEventListener("click", () => {
+                removeAllLabel();
                 const allButtons = maps_buttons_left.querySelectorAll(".button");
 
                 const isOnlyValid = !button.classList.contains("invalid") &&
