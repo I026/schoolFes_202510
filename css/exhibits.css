@@ -843,6 +843,8 @@
 .content.main .exhibits .tile .content .mapsView .labelsArea .mapsLabel .informations > div {
     position: relative;
     width: auto;
+    height: min-content;
+    display: flex;
     /* border-radius: calc(.5em - var(--labelPadding)); */
     border-radius: calc(
         (var(--informationsRadius) - var(--labelPadding)) * .75
@@ -855,7 +857,25 @@
 }
 .content.main .exhibits .tile .content .mapsView .labelsArea .mapsLabel .informations > .detail {
     pointer-events: auto;
-    cursor: pointer;
+    /* cursor: pointer; */
+}
+.content.main .exhibits .tile .content .mapsView .labelsArea .mapsLabel .informations > .detail .arrow {
+    opacity: 1;
+    position: relative;
+    --arrowScale: calc(
+        var(--camZoom) * 6px
+    );
+    left: calc(
+        100% - var(--arrowScale)
+    );
+    margin-top: calc(var(--arrowScale) * .2);
+    margin-bottom: calc(var(--arrowScale) * .2);
+    height: var(--arrowScale);
+    height: var(--arrowScale);
+    transform: translateX(-10%) rotate(225deg);
+}
+.content.main .exhibits .tile .content .mapsView .labelsArea .mapsLabel .informations > .detail .arrow path {
+    stroke-width: 100;
 }
 
 @keyframes label_edgeAnim {
@@ -1047,10 +1067,6 @@
     position: relative;
     width : 100%;
     height: 100%;
-    border-radius: 10px;
-    top: 5px;
-    margin-bottom: 5px;
-    max-width: 15em;
 }
 .content.main .exhibits .tile .content .mapsView .labelsArea .mapsLabel .title {
     position: relative;
